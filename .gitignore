@@ -5,6 +5,7 @@
 dist/
 node_modules/
 out-tsc/
+tmp/
 
 .classpath
 .DS_Store
