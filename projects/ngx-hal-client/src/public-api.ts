@@ -3,5 +3,4 @@
  */
 
 export * from './lib/ngx-hal-client.service';
-export * from './lib/ngx-hal-client.component';
 export * from './lib/ngx-hal-client.module';
