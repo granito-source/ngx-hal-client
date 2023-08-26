@@ -4,6 +4,7 @@
 .settings/
 dist/
 node_modules/
+out-tsc/
 
 .classpath
 .DS_Store
