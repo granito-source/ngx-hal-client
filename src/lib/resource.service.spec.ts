@@ -1,15 +1,15 @@
-import { TestBed } from '@angular/core/testing';
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { ResourceService } from './resource.service';
 
 describe('ResourceService', () => {
-    let service: ResourceService;
-
-    beforeEach(() => {
-        TestBed.configureTestingModule({});
-        service = TestBed.inject(ResourceService);
+    const createService = createServiceFactory({
+        service: ResourceService
     });
+    let spectator: SpectatorService<ResourceService>;
 
-    it('should be created', () => {
-        expect(service).toBeTruthy();
+    beforeEach(() => spectator = createService());
+
+    it('gets created', () => {
+        expect(spectator.service).toBeTruthy();
     });
 });
