@@ -19,7 +19,7 @@ will be stored in the `dist/` directory.
 ## Publishing
 
 After building your library with `ng build ngx-hal-client`, go to the
-dist folder `cd dist/ngx-hal-client` and run `npm publish`.
+`dist` folder `cd dist/ngx-hal-client` and run `npm publish`.
 
 ## Running unit tests
 

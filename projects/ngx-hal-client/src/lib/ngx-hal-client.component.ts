@@ -1,15 +1,13 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'lib-ngx-hal-client',
-  template: `
+    selector: 'lib-ngx-hal-client',
+    template: `
     <p>
       ngx-hal-client works!
     </p>
   `,
-  styles: [
-  ]
+    styles: []
 })
 export class NgxHalClientComponent {
-
 }
