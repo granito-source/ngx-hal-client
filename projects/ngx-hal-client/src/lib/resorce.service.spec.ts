@@ -1,12 +1,12 @@
 import { TestBed } from '@angular/core/testing';
-import { NgxHalClientService } from './ngx-hal-client.service';
+import { ResourceService } from './resource.service';
 
-describe('NgxHalClientService', () => {
-    let service: NgxHalClientService;
+describe('ResourceService', () => {
+    let service: ResourceService;
 
     beforeEach(() => {
         TestBed.configureTestingModule({});
-        service = TestBed.inject(NgxHalClientService);
+        service = TestBed.inject(ResourceService);
     });
 
     it('should be created', () => {

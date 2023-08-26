@@ -2,5 +2,5 @@
  * Public API Surface of ngx-hal-client
  */
 
-export * from './lib/ngx-hal-client.service';
-export * from './lib/ngx-hal-client.module';
+export * from './lib/resource.service';
+export * from './lib/hal-client.module';
