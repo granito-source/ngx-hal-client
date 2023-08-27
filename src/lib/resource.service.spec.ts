@@ -4,7 +4,7 @@ import { Resource } from './resource';
 import { ResourceService } from './resource.service';
 
 class TestResource extends Resource {
-    readonly prop!: string;
+    readonly prop?: string;
 
     constructor(obj: any) {
         super(obj);
@@ -24,7 +24,7 @@ describe('ResourceService', () => {
     });
 
     describe('#get()', () => {
-        it('returns resource observable when call is successful', () => {
+        it('returns resource when call is successful', () => {
             let resource!: TestResource;
 
             spectator.service.get(TestResource, '/api/v1')
@@ -87,6 +87,47 @@ describe('ResourceService', () => {
             expect(error.error).toBe('Unauthorized');
             expect(error.message).toBe('not logged in');
             expect(error['exception']).toBe('NotAuthenticatedException');
+        });
+    });
+
+    describe('Resource', () => {
+        let resource: Resource;
+
+        beforeEach(() => resource = spectator.service.create(Resource, {
+            _links: {
+                self: { href: '/api/v1' },
+                test: { href: '/api/v1/test' }
+            }
+        }));
+
+        it('#read() returns requested resource when rel exists', () => {
+            let test!: TestResource;
+
+            resource.read(TestResource, 'test').subscribe(r => test = r);
+
+            const req = spectator.expectOne('/api/v1/test', HttpMethod.GET);
+
+            req.flush({ prop: 'value' });
+
+            expect(test).toBeInstanceOf(TestResource);
+            expect(test.prop).toBe('value');
+        });
+
+        it('#read() throws HAL error when rel does not exist', () => {
+            let error!: HalError;
+
+            resource.read(TestResource, 'missing').subscribe({
+                next: () => fail('no next is expected'),
+                complete: () => fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message).toBe('relation \'missing\' is undefined');
         });
     });
 });

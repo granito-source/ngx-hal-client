@@ -9,9 +9,13 @@ export class ResourceService {
     constructor(private http: HttpClient) {
     }
 
+    create<T extends Resource>(type: new (obj: any) => T, obj: any): T {
+        return new type({ ...obj, resourceService: this });
+    }
+
     get<T extends Resource>(type: new (obj: any) => T, uri: string): Observable<T> {
         return this.http.get(uri).pipe(
-            map(obj => new type(obj)),
+            map(obj => this.create(type, obj)),
             catchError(err => this.handleError(err))
         );
     }
