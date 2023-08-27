@@ -1,6 +1,6 @@
 import { Observable, throwError } from "rxjs";
-import { ResourceService } from "./resource.service";
 import { HalError } from "./hal-error";
+import { ResourceService } from "./resource.service";
 
 interface Link {
     href: string;
@@ -24,10 +24,6 @@ export class Resource {
     }
 
     private href(rel: string): string {
-        return this.link(rel).href;
-    }
-
-    private link(rel: string): Link {
         const link = this._links[rel];
 
         if (!link)
@@ -35,6 +31,11 @@ export class Resource {
                 message: `relation '${rel}' is undefined`
             });
 
-        return link;
+        if (!link.href)
+            throw new HalError({
+                message: `relation '${rel}' does not have href`
+            });
+
+        return link.href;
     }
 }

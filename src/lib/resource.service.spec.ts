@@ -96,7 +96,8 @@ describe('ResourceService', () => {
         beforeEach(() => resource = spectator.service.create(Resource, {
             _links: {
                 self: { href: '/api/v1' },
-                test: { href: '/api/v1/test' }
+                test: { href: '/api/v1/test' },
+                broken: {}
             }
         }));
 
@@ -128,6 +129,24 @@ describe('ResourceService', () => {
             expect(error.status).toBeUndefined();
             expect(error.error).toBeUndefined();
             expect(error.message).toBe('relation \'missing\' is undefined');
+        });
+
+        it('#read() throws HAL error when rel does not have href', () => {
+            let error!: HalError;
+
+            resource.read(TestResource, 'broken').subscribe({
+                next: () => fail('no next is expected'),
+                complete: () => fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message)
+                .toBe('relation \'broken\' does not have href');
         });
     });
 });
