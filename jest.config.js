@@ -5,13 +5,13 @@
 
 /** @type {import('jest').Config} */
 const config = {
-  collectCoverage: true,
-  coverageDirectory: "tmp/coverage",
-  coverageProvider: "v8",
-  coverageReporters: [
-    "text",
-    "lcov"
-  ]
+    collectCoverage: true,
+    coverageDirectory: 'tmp/coverage',
+    coverageProvider: 'v8',
+    coverageReporters: [
+        'text',
+        'lcov'
+    ]
 };
 
 module.exports = config;

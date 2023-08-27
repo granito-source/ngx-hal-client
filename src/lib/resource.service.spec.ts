@@ -97,56 +97,83 @@ describe('ResourceService', () => {
             _links: {
                 self: { href: '/api/v1' },
                 test: { href: '/api/v1/test' },
-                broken: {}
+                broken: {},
+                tmpl: { href: '/api/v1/search{?q,o}', templated: true },
+                notmpl: { href: '/api/v1/search{?q}' }
             }
         }));
 
-        it('#read() returns requested resource when rel exists', () => {
-            let test!: TestResource;
+        describe('#read()', () => {
+            it('returns requested resource when rel exists', () => {
+                let test!: TestResource;
 
-            resource.read(TestResource, 'test').subscribe(r => test = r);
+                resource.read(TestResource, 'test').subscribe(r => test = r);
 
-            const req = spectator.expectOne('/api/v1/test', HttpMethod.GET);
+                const req = spectator.expectOne('/api/v1/test', HttpMethod.GET);
 
-            req.flush({ prop: 'value' });
+                req.flush({ prop: 'value' });
 
-            expect(test).toBeInstanceOf(TestResource);
-            expect(test.prop).toBe('value');
-        });
-
-        it('#read() throws HAL error when rel does not exist', () => {
-            let error!: HalError;
-
-            resource.read(TestResource, 'missing').subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
-                error: err => error = err
+                expect(test).toBeInstanceOf(TestResource);
+                expect(test.prop).toBe('value');
             });
 
-            expect(error).toBeInstanceOf(HalError);
-            expect(error.name).toBe('HalError');
-            expect(error.path).toBeUndefined();
-            expect(error.status).toBeUndefined();
-            expect(error.error).toBeUndefined();
-            expect(error.message).toBe('relation \'missing\' is undefined');
-        });
+            it('expands href when templated', () => {
+                resource.read(TestResource, 'tmpl', {
+                    q: 'query',
+                    o: 'asc'
+                }).subscribe();
 
-        it('#read() throws HAL error when rel does not have href', () => {
-            let error!: HalError;
+                const req = spectator.expectOne('/api/v1/search?q=query&o=asc',
+                    HttpMethod.GET);
 
-            resource.read(TestResource, 'broken').subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
-                error: err => error = err
+                req.flush({});
             });
 
-            expect(error).toBeInstanceOf(HalError);
-            expect(error.name).toBe('HalError');
-            expect(error.path).toBeUndefined();
-            expect(error.status).toBeUndefined();
-            expect(error.error).toBeUndefined();
-            expect(error.message)
-                .toBe('relation \'broken\' does not have href');
+            it('does not try to expand href when not templated', () => {
+                resource.read(TestResource, 'notmpl', {
+                    q: 'query'
+                }).subscribe();
+
+                const req = spectator.expectOne('/api/v1/search{?q}',
+                    HttpMethod.GET);
+
+                req.flush({});
+            });
+
+            it('throws HAL error when rel does not exist', () => {
+                let error!: HalError;
+
+                resource.read(TestResource, 'missing').subscribe({
+                    next: () => fail('no next is expected'),
+                    complete: () => fail('no complete is expected'),
+                    error: err => error = err
+                });
+
+                expect(error).toBeInstanceOf(HalError);
+                expect(error.name).toBe('HalError');
+                expect(error.path).toBeUndefined();
+                expect(error.status).toBeUndefined();
+                expect(error.error).toBeUndefined();
+                expect(error.message).toBe('relation \'missing\' is undefined');
+            });
+
+            it('throws HAL error when rel does not have href', () => {
+                let error!: HalError;
+
+                resource.read(TestResource, 'broken').subscribe({
+                    next: () => fail('no next is expected'),
+                    complete: () => fail('no complete is expected'),
+                    error: err => error = err
+                });
+
+                expect(error).toBeInstanceOf(HalError);
+                expect(error.name).toBe('HalError');
+                expect(error.path).toBeUndefined();
+                expect(error.status).toBeUndefined();
+                expect(error.error).toBeUndefined();
+                expect(error.message)
+                    .toBe('relation \'broken\' does not have href');
+            });
         });
     });
 });
