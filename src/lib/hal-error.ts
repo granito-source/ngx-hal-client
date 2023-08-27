@@ -1,7 +1,9 @@
 export class HalError extends Error {
     path?: string;
 
-    httpStatus?: number;
+    status?: number;
+
+    error?: string;
 
     [key: string]: any;
 

@@ -25,9 +25,10 @@ export class ResourceService {
 
         return throwError(() => new HalError({
             message: err.message,
+            status: err.status,
+            error: err.statusText,
             path: err.url,
-            ...err.error,
-            httpStatus: err.status
+            ...err.error
         }));
     }
 }

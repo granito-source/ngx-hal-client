@@ -56,7 +56,8 @@ describe('ResourceService', () => {
             expect(error).toBeInstanceOf(HalError);
             expect(error.name).toBe('HalError');
             expect(error.path).toBe('/api/v2');
-            expect(error.httpStatus).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
             expect(error.message).toMatch(/^Http failure response for \/api\/v2/);
         });
 
@@ -82,7 +83,8 @@ describe('ResourceService', () => {
             expect(error).toBeInstanceOf(HalError);
             expect(error.name).toBe('HalError');
             expect(error.path).toBe('/api/v3');
-            expect(error.httpStatus).toBe(401);
+            expect(error.status).toBe(401);
+            expect(error.error).toBe('Unauthorized');
             expect(error.message).toBe('not logged in');
             expect(error['exception']).toBe('NotAuthenticatedException');
         });
