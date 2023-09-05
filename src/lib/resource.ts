@@ -12,22 +12,31 @@ interface Link {
 export class Resource {
     private readonly _links: { [rel: string]: Link} = {};
 
-    private readonly resourceService!: ResourceService;
+    private readonly _service!: ResourceService;
 
-    constructor(obj: any) {
+    constructor(obj: Object) {
         Object.assign(this, obj);
     }
 
-    read<T extends Resource>(type: new (obj: any) => T, rel: string,
-        params: {[key: string]: string} = {}): Observable<T> {
+    read<T extends Resource>(type: new (obj: Object) => T, rel: string,
+        params: { [key: string]: string } = {}): Observable<T> {
         try {
-            return this.resourceService.get(type, this.href(rel, params));
+            return this._service.get(type, this.href(rel, params));
         } catch (err) {
             return throwError(() => err);
         }
     }
 
-    private href(rel: string, params: {[key: string]: string}): string {
+    update(): Observable<void> {
+        try {
+            return this._service.put(this.href('self'), this);
+        } catch (err) {
+            return throwError(() => err);
+        }
+    }
+
+    private href(rel: string,
+        params: { [key: string]: string } = {}): string {
         const link = this._links[rel];
 
         if (!link)

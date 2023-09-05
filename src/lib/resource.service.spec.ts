@@ -4,9 +4,9 @@ import { Resource } from './resource';
 import { ResourceService } from './resource.service';
 
 class TestResource extends Resource {
-    readonly prop?: string;
+    prop?: string;
 
-    constructor(obj: any) {
+    constructor(obj: Object) {
         super(obj);
     }
 }
@@ -58,7 +58,8 @@ describe('ResourceService', () => {
             expect(error.path).toBe('/api/v2');
             expect(error.status).toBeUndefined();
             expect(error.error).toBeUndefined();
-            expect(error.message).toMatch(/^Http failure response for \/api\/v2/);
+            expect(error.message)
+                .toMatch(/^Http failure response for \/api\/v2/);
         });
 
         it('throws HAL error when API reports error', () => {
@@ -91,9 +92,9 @@ describe('ResourceService', () => {
     });
 
     describe('Resource', () => {
-        let resource: Resource;
+        let resource: TestResource;
 
-        beforeEach(() => resource = spectator.service.create(Resource, {
+        beforeEach(() => resource = spectator.service.create(TestResource, {
             _links: {
                 self: { href: '/api/v1' },
                 test: { href: '/api/v1/test' },
@@ -109,7 +110,8 @@ describe('ResourceService', () => {
 
                 resource.read(TestResource, 'test').subscribe(r => test = r);
 
-                const req = spectator.expectOne('/api/v1/test', HttpMethod.GET);
+                const req = spectator.expectOne('/api/v1/test',
+                    HttpMethod.GET);
 
                 req.flush({ prop: 'value' });
 
@@ -154,7 +156,8 @@ describe('ResourceService', () => {
                 expect(error.path).toBeUndefined();
                 expect(error.status).toBeUndefined();
                 expect(error.error).toBeUndefined();
-                expect(error.message).toBe('relation \'missing\' is undefined');
+                expect(error.message)
+                    .toBe('relation \'missing\' is undefined');
             });
 
             it('throws HAL error when rel does not have href', () => {
@@ -173,6 +176,170 @@ describe('ResourceService', () => {
                 expect(error.error).toBeUndefined();
                 expect(error.message)
                     .toBe('relation \'broken\' does not have href');
+            });
+
+            it('throws HAL error when connection fails', () => {
+                let error!: HalError;
+
+                resource.read(TestResource, 'test').subscribe({
+                    next: () => fail('no next is expected'),
+                    complete: () => fail('no complete is expected'),
+                    error: err => error = err
+                });
+
+                const req = spectator.expectOne('/api/v1/test',
+                    HttpMethod.GET);
+
+                req.error(new ProgressEvent('error'));
+
+                expect(error).toBeInstanceOf(HalError);
+                expect(error.name).toBe('HalError');
+                expect(error.path).toBe('/api/v1/test');
+                expect(error.status).toBeUndefined();
+                expect(error.error).toBeUndefined();
+                expect(error.message)
+                    .toMatch(/^Http failure response for \/api\/v1\/test/);
+            });
+
+            it('throws HAL error when API reports error', () => {
+                let error!: HalError;
+
+                resource.read(TestResource, 'test').subscribe({
+                    next: () => fail('no next is expected'),
+                    complete: () => fail('no complete is expected'),
+                    error: err => error = err
+                });
+
+                const req = spectator.expectOne('/api/v1/test',
+                    HttpMethod.GET);
+
+                req.flush({
+                    message: 'not logged in',
+                    exception: 'NotAuthenticatedException'
+                }, {
+                    status: 401,
+                    statusText: 'Unauthorized'
+                });
+
+                expect(error).toBeInstanceOf(HalError);
+                expect(error.name).toBe('HalError');
+                expect(error.path).toBe('/api/v1/test');
+                expect(error.status).toBe(401);
+                expect(error.error).toBe('Unauthorized');
+                expect(error.message).toBe('not logged in');
+                expect(error['exception']).toBe('NotAuthenticatedException');
+            });
+        });
+
+        describe('#update()', () => {
+            it('puts payload to self link when it exists', () => {
+                let done = false;
+
+                resource.prop = 'updated';
+                resource.update().subscribe(r => done = true);
+
+                const req = spectator.expectOne('/api/v1', HttpMethod.PUT);
+
+                req.flush(null, {
+                    status: 204,
+                    statusText: 'No Content'
+                });
+
+                expect(req.request.body).toEqual({ prop: 'updated' });
+                expect(done).toBe(true);
+            });
+
+            it('throws HAL error when self rel does not exist', () => {
+                const noSelf = spectator.service.create(TestResource, {
+                    _links: {}
+                });
+                let error!: HalError;
+
+                noSelf.update().subscribe({
+                    next: () => fail('no next is expected'),
+                    complete: () => fail('no complete is expected'),
+                    error: err => error = err
+                });
+
+                expect(error).toBeInstanceOf(HalError);
+                expect(error.name).toBe('HalError');
+                expect(error.path).toBeUndefined();
+                expect(error.status).toBeUndefined();
+                expect(error.error).toBeUndefined();
+                expect(error.message).toBe('relation \'self\' is undefined');
+            });
+
+            it('throws HAL error when self rel does not have href', () => {
+                const noSelf = spectator.service.create(TestResource, {
+                    _links: {
+                        self: {}
+                    }
+                });
+                let error!: HalError;
+
+                noSelf.update().subscribe({
+                    next: () => fail('no next is expected'),
+                    complete: () => fail('no complete is expected'),
+                    error: err => error = err
+                });
+
+                expect(error).toBeInstanceOf(HalError);
+                expect(error.name).toBe('HalError');
+                expect(error.path).toBeUndefined();
+                expect(error.status).toBeUndefined();
+                expect(error.error).toBeUndefined();
+                expect(error.message)
+                    .toBe('relation \'self\' does not have href');
+            });
+
+            it('throws HAL error when connection fails', () => {
+                let error!: HalError;
+
+                resource.update().subscribe({
+                    next: () => fail('no next is expected'),
+                    complete: () => fail('no complete is expected'),
+                    error: err => error = err
+                });
+
+                const req = spectator.expectOne('/api/v1', HttpMethod.PUT);
+
+                req.error(new ProgressEvent('error'));
+
+                expect(error).toBeInstanceOf(HalError);
+                expect(error.name).toBe('HalError');
+                expect(error.path).toBe('/api/v1');
+                expect(error.status).toBeUndefined();
+                expect(error.error).toBeUndefined();
+                expect(error.message)
+                    .toMatch(/^Http failure response for \/api\/v1/);
+            });
+
+            it('throws HAL error when API reports error', () => {
+                let error!: HalError;
+
+                resource.update().subscribe({
+                    next: () => fail('no next is expected'),
+                    complete: () => fail('no complete is expected'),
+                    error: err => error = err
+                });
+
+                const req = spectator.expectOne('/api/v1', HttpMethod.PUT);
+
+                req.flush({
+                    message: 'not logged in',
+                    exception: 'NotAuthenticatedException'
+                }, {
+                    status: 401,
+                    statusText: 'Unauthorized'
+                });
+
+                expect(error).toBeInstanceOf(HalError);
+                expect(error.name).toBe('HalError');
+                expect(error.path).toBe('/api/v1');
+                expect(error.status).toBe(401);
+                expect(error.error).toBe('Unauthorized');
+                expect(error.message).toBe('not logged in');
+                expect(error['exception']).toBe('NotAuthenticatedException');
             });
         });
     });
