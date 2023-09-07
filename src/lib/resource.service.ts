@@ -21,15 +21,28 @@ export class ResourceService {
         );
     }
 
-    put(uri: string, body: Object): Observable<void> {
-        return this.http.put(uri, {
-            ...body,
-            _service: undefined,
-            _links: undefined
+    post(uri: string, body: Object): Observable<string | undefined> {
+        return this.http.post(uri, this.sanitize(body), {
+            observe: 'response'
         }).pipe(
+            map(response => response.headers.get('Location') || undefined),
+            catchError(err => this.handleError(err))
+        );
+    }
+
+    put(uri: string, body: Object): Observable<void> {
+        return this.http.put(uri, this.sanitize(body)).pipe(
             map(() => undefined),
             catchError(err => this.handleError(err))
         );
+    }
+
+    private sanitize(body: Object): Object {
+        return {
+            ...body,
+            _service: undefined,
+            _links: undefined
+        };
     }
 
     private handleError(err: HttpErrorResponse): Observable<never> {
