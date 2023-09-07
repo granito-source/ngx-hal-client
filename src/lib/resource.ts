@@ -12,7 +12,7 @@ interface Link {
 }
 
 export class Resource {
-    private readonly _links: { [rel: string]: Link} = {};
+    private readonly _links: Record<string, Link> = {};
 
     private readonly _service!: ResourceService;
 
