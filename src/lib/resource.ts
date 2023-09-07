@@ -11,6 +11,8 @@ interface Link {
     href: string;
 }
 
+const self = 'self';
+
 export class Resource {
     private readonly _links: Record<string, Link> = {};
 
@@ -20,7 +22,7 @@ export class Resource {
         Object.assign(this, obj);
     }
 
-    create(obj: Object, rel: string, params: Params = {}):
+    create(obj: Object, rel = self, params: Params = {}):
         Observable<string | undefined> {
         return this.request(
             () => this._service.post(this.href(rel, params), obj));
@@ -34,7 +36,7 @@ export class Resource {
 
     update(): Observable<void> {
         return this.request(
-            () => this._service.put(this.href('self'), this));
+            () => this._service.put(this.href(self), this));
     }
 
     private request<T>(func: () => Observable<T>): Observable<T> {

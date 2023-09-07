@@ -151,6 +151,26 @@ describe('ResourceService', () => {
                 expect(location).toBeUndefined();
             });
 
+            it('uses "self" when rel is not provided', () => {
+                let location: string | undefined;
+
+                resource.create(item).subscribe(l => location = l);
+
+                const req = spectator.expectOne('/api/v1',
+                    HttpMethod.POST);
+
+                req.flush(null, {
+                    status: 201,
+                    statusText: 'Created',
+                    headers: {
+                        Location: '/api/v1/item'
+                    }
+                });
+
+                expect(req.request.body).toEqual({ prop: 'new' });
+                expect(location).toBe('/api/v1/item');
+            });
+
             it('expands href when link is templated', () => {
                 let location: string | undefined;
 
