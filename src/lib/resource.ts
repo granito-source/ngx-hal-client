@@ -3,9 +3,7 @@ import * as URI from 'uri-template';
 import { HalError } from './hal-error';
 import { ResourceService } from './resource.service';
 
-interface Params {
-    [key: string]: string | number | boolean;
-}
+type Params = Record<string, string | number | boolean>;
 
 interface Link {
     templated?: boolean;
