@@ -101,6 +101,11 @@ describe('ResourceService', () => {
                 broken: {},
                 tmpl: { href: '/api/v1/items{?q,o}', templated: true },
                 notmpl: { href: '/api/v1/items{?q}' }
+            },
+            _embedded: {
+                obj: {
+                    key: 'value'
+                }
             }
         }));
 

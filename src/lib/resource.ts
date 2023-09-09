@@ -16,6 +16,8 @@ const self = 'self';
 export class Resource {
     private readonly _links: Record<string, Link> = {};
 
+    private readonly _embedded: Record<string, Object> = {};
+
     private readonly _service!: ResourceService;
 
     constructor(obj: Object) {

@@ -6,7 +6,7 @@ import { Resource } from './resource';
 
 @Injectable({ providedIn: 'root' })
 export class ResourceService {
-    constructor(private http: HttpClient) {
+    constructor(private readonly http: HttpClient) {
     }
 
     create<T extends Resource>(type: new (obj: Object) => T, obj: Object): T {
@@ -48,7 +48,8 @@ export class ResourceService {
         return {
             ...body,
             _service: undefined,
-            _links: undefined
+            _links: undefined,
+            _embedded: undefined
         };
     }
 
