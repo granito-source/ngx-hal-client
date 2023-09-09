@@ -104,7 +104,7 @@ describe('ResourceService', () => {
             }
         }));
 
-        describe('#create', () => {
+        describe('#create()', () => {
             let item: TestResource;
 
             beforeEach(() => item = spectator.service.create(TestResource, {
@@ -432,7 +432,7 @@ describe('ResourceService', () => {
         });
 
         describe('#update()', () => {
-            it('puts payload to self link when it exists', () => {
+            it('puts payload to "self" link when it exists', () => {
                 let done = false;
 
                 resource.prop = 'updated';
@@ -449,7 +449,7 @@ describe('ResourceService', () => {
                 expect(done).toBe(true);
             });
 
-            it('throws HAL error when self rel does not exist', () => {
+            it('throws HAL error when "self" rel does not exist', () => {
                 const noSelf = spectator.service.create(TestResource, {
                     _links: {}
                 });
@@ -469,7 +469,7 @@ describe('ResourceService', () => {
                 expect(error.message).toBe('relation \'self\' is undefined');
             });
 
-            it('throws HAL error when self rel does not have href', () => {
+            it('throws HAL error when "self" rel does not have href', () => {
                 const noSelf = spectator.service.create(TestResource, {
                     _links: {
                         self: {}
@@ -524,6 +524,159 @@ describe('ResourceService', () => {
                 });
 
                 const req = spectator.expectOne('/api/v1', HttpMethod.PUT);
+
+                req.flush({
+                    message: 'not logged in',
+                    exception: 'NotAuthenticatedException'
+                }, {
+                    status: 401,
+                    statusText: 'Unauthorized'
+                });
+
+                expect(error).toBeInstanceOf(HalError);
+                expect(error.name).toBe('HalError');
+                expect(error.path).toBe('/api/v1');
+                expect(error.status).toBe(401);
+                expect(error.error).toBe('Unauthorized');
+                expect(error.message).toBe('not logged in');
+                expect(error['exception']).toBe('NotAuthenticatedException');
+            });
+        });
+
+        describe('#delete()', () => {
+            it('deletes linked resource when good rel provided', () => {
+                let done = false;
+
+                resource.delete('test').subscribe(() => done = true);
+
+                const req = spectator.expectOne('/api/v1/test',
+                    HttpMethod.DELETE);
+
+                req.flush(null, {
+                    status: 204,
+                    statusText: 'No Content'
+                });
+
+                expect(done).toBe(true);
+            });
+
+            it('deletes "self" when no rel provided', () => {
+                let done = false;
+
+                resource.delete().subscribe(() => done = true);
+
+                const req = spectator.expectOne('/api/v1', HttpMethod.DELETE);
+
+                req.flush(null, {
+                    status: 204,
+                    statusText: 'No Content'
+                });
+
+                expect(done).toBe(true);
+            });
+
+            it('expands href when templated', () => {
+                let done = false;
+
+                resource.delete('tmpl', { q: 'old' })
+                    .subscribe(() => done = true);
+
+                const req = spectator.expectOne('/api/v1/items?q=old',
+                    HttpMethod.DELETE);
+
+                req.flush(null, {
+                    status: 204,
+                    statusText: 'No Content'
+                });
+
+                expect(done).toBe(true);
+            });
+
+            it('does not try to expand href when not templated', () => {
+                let done = false;
+
+                resource.delete('notmpl', { q: 'old' })
+                    .subscribe(() => done = true);
+
+                const req = spectator.expectOne('/api/v1/items{?q}',
+                    HttpMethod.DELETE);
+
+                req.flush(null, {
+                    status: 204,
+                    statusText: 'No Content'
+                });
+
+                expect(done).toBe(true);
+            });
+
+            it('throws HAL error when rel does not exist', () => {
+                let error!: HalError;
+
+                resource.delete('missing').subscribe({
+                    next: () => fail('no next is expected'),
+                    complete: () => fail('no complete is expected'),
+                    error: err => error = err
+                });
+
+                expect(error).toBeInstanceOf(HalError);
+                expect(error.name).toBe('HalError');
+                expect(error.path).toBeUndefined();
+                expect(error.status).toBeUndefined();
+                expect(error.error).toBeUndefined();
+                expect(error.message)
+                    .toBe('relation \'missing\' is undefined');
+            });
+
+            it('throws HAL error when rel does not have href', () => {
+                let error!: HalError;
+
+                resource.delete('broken').subscribe({
+                    next: () => fail('no next is expected'),
+                    complete: () => fail('no complete is expected'),
+                    error: err => error = err
+                });
+
+                expect(error).toBeInstanceOf(HalError);
+                expect(error.name).toBe('HalError');
+                expect(error.path).toBeUndefined();
+                expect(error.status).toBeUndefined();
+                expect(error.error).toBeUndefined();
+                expect(error.message)
+                    .toBe('relation \'broken\' does not have href');
+            });
+
+            it('throws HAL error when connection fails', () => {
+                let error!: HalError;
+
+                resource.delete().subscribe({
+                    next: () => fail('no next is expected'),
+                    complete: () => fail('no complete is expected'),
+                    error: err => error = err
+                });
+
+                const req = spectator.expectOne('/api/v1', HttpMethod.DELETE);
+
+                req.error(new ProgressEvent('error'));
+
+                expect(error).toBeInstanceOf(HalError);
+                expect(error.name).toBe('HalError');
+                expect(error.path).toBe('/api/v1');
+                expect(error.status).toBeUndefined();
+                expect(error.error).toBeUndefined();
+                expect(error.message)
+                    .toMatch(/^Http failure response for \/api\/v1/);
+            });
+
+            it('throws HAL error when API reports error', () => {
+                let error!: HalError;
+
+                resource.delete().subscribe({
+                    next: () => fail('no next is expected'),
+                    complete: () => fail('no complete is expected'),
+                    error: err => error = err
+                });
+
+                const req = spectator.expectOne('/api/v1', HttpMethod.DELETE);
 
                 req.flush({
                     message: 'not logged in',

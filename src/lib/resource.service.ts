@@ -17,7 +17,7 @@ export class ResourceService {
         uri: string): Observable<T> {
         return this.http.get(uri).pipe(
             map(obj => this.create(type, obj)),
-            catchError(err => this.handleError(err))
+            catchError(this.handleError)
         );
     }
 
@@ -26,14 +26,21 @@ export class ResourceService {
             observe: 'response'
         }).pipe(
             map(response => response.headers.get('Location') || undefined),
-            catchError(err => this.handleError(err))
+            catchError(this.handleError)
         );
     }
 
     put(uri: string, body: Object): Observable<void> {
         return this.http.put(uri, this.sanitize(body)).pipe(
             map(() => undefined),
-            catchError(err => this.handleError(err))
+            catchError(this.handleError)
+        );
+    }
+
+    delete(uri: string): Observable<void> {
+        return this.http.delete(uri).pipe(
+            map(() => undefined),
+            catchError(this.handleError)
         );
     }
 

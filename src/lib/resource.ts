@@ -24,22 +24,23 @@ export class Resource {
 
     create(obj: Object, rel = self, params: Params = {}):
         Observable<string | undefined> {
-        return this.request(
-            () => this._service.post(this.href(rel, params), obj));
+        return this.do(() => this._service.post(this.href(rel, params), obj));
     }
 
     read<T extends Resource>(type: new (obj: Object) => T, rel: string,
         params: Params = {}): Observable<T> {
-        return this.request(
-            () => this._service.get(type, this.href(rel, params)));
+        return this.do(() => this._service.get(type, this.href(rel, params)));
     }
 
     update(): Observable<void> {
-        return this.request(
-            () => this._service.put(this.href(self), this));
+        return this.do(() => this._service.put(this.href(self), this));
     }
 
-    private request<T>(func: () => Observable<T>): Observable<T> {
+    delete(rel = self, params: Params = {}): Observable<void> {
+        return this.do(() => this._service.delete(this.href(rel, params)));
+    }
+
+    private do<T>(func: () => Observable<T>): Observable<T> {
         try {
             return func();
         } catch (err) {
