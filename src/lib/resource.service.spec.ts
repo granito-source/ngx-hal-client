@@ -20,7 +20,7 @@ describe('ResourceService', () => {
     beforeEach(() => spectator = createService());
 
     it('gets created', () => {
-        expect(spectator.service).toBeTruthy();
+        expect(spectator.service).toBeDefined();
     });
 
     describe('#get()', () => {
@@ -105,7 +105,16 @@ describe('ResourceService', () => {
             _embedded: {
                 test: {
                     prop: 'defined'
-                }
+                },
+                array: [
+                    {
+                        prop: 'one'
+                    },
+                    {
+                        prop: 'two'
+                    }
+                ],
+                empty: []
             }
         }));
 
@@ -702,15 +711,54 @@ describe('ResourceService', () => {
         });
 
         describe('#get()', () => {
+            it('returns undefined when embedded rel does not exist', () => {
+                expect(resource.get(TestResource, 'missing')).toBeUndefined();
+            });
+
             it('returns resource when embedded rel exists', () => {
                 const test = resource.get(TestResource, 'test');
 
-                expect(test).toBeTruthy();
+                expect(test).toBeDefined();
                 expect(test?.prop).toBe('defined');
             });
 
+            it('returns first resource when embedded rel is array', () => {
+                const one = resource.get(TestResource, 'array');
+
+                expect(one).toBeDefined();
+                expect(one?.prop).toBe('one');
+            });
+
+            it('returns undefined when embedded rel is empty array', () => {
+                expect(resource.get(TestResource, 'empty')).toBeUndefined()
+            });
+        });
+
+        describe('#getArray()', () => {
             it('returns undefined when embedded rel does not exist', () => {
-                expect(resource.get(TestResource, 'missing')).toBeUndefined();
+                expect(resource.getArray(TestResource, 'missing'))
+                    .toBeUndefined();
+            });
+
+            it('returns array of resources when embedded rel is array', () => {
+                const array = resource.getArray(TestResource, 'array');
+
+                expect(array).toBeDefined();
+                expect(array?.map(x => x.prop)).toEqual(['one', 'two']);
+            });
+
+            it('returns empty when embedded rel is empty array', () => {
+                const array = resource.getArray(TestResource, 'empty');
+
+                expect(array).toBeDefined();
+                expect(array?.map(x => 1)).toEqual([]);
+            });
+
+            it('wraps value in array when rel is not array', () => {
+                const array = resource.getArray(TestResource, 'test');
+
+                expect(array).toBeDefined();
+                expect(array?.map(x => x.prop)).toEqual(['defined']);
             });
         });
     });

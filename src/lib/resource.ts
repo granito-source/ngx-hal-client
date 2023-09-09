@@ -46,7 +46,26 @@ export class Resource {
     get<T extends Resource>(type: Type<T>, rel: string): T | undefined {
         const obj = this._embedded[rel];
 
+        if (Array.isArray(obj)) {
+            const objs = obj as Object[];
+            const first = objs[0];
+
+            return first && this._service.create(type, first);
+        }
+
         return obj && this._service.create(type, obj);
+    }
+
+    getArray<T extends Resource>(type: Type<T>, rel: string): T[] | undefined {
+        const obj = this._embedded[rel];
+
+        if (Array.isArray(obj)) {
+            const objs = obj as Object[];
+
+            return objs.map(obj => this._service.create(type, obj));
+        }
+
+        return obj && [this._service.create(type, obj)];
     }
 
     private do<T>(func: () => Observable<T>): Observable<T> {
