@@ -103,8 +103,8 @@ describe('ResourceService', () => {
                 notmpl: { href: '/api/v1/items{?q}' }
             },
             _embedded: {
-                obj: {
-                    key: 'value'
+                test: {
+                    prop: 'defined'
                 }
             }
         }));
@@ -698,6 +698,19 @@ describe('ResourceService', () => {
                 expect(error.error).toBe('Unauthorized');
                 expect(error.message).toBe('not logged in');
                 expect(error['exception']).toBe('NotAuthenticatedException');
+            });
+        });
+
+        describe('#get()', () => {
+            it('returns resource when embedded rel exists', () => {
+                const test = resource.get(TestResource, 'test');
+
+                expect(test).toBeTruthy();
+                expect(test?.prop).toBe('defined');
+            });
+
+            it('returns undefined when embedded rel does not exist', () => {
+                expect(resource.get(TestResource, 'missing')).toBeUndefined();
             });
         });
     });

@@ -1,3 +1,4 @@
+import { Type } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import * as URI from 'uri-template';
 import { HalError } from './hal-error';
@@ -29,8 +30,8 @@ export class Resource {
         return this.do(() => this._service.post(this.href(rel, params), obj));
     }
 
-    read<T extends Resource>(type: new (obj: Object) => T, rel: string,
-        params: Params = {}): Observable<T> {
+    read<T extends Resource>(type: Type<T>, rel: string, params: Params = {}):
+        Observable<T> {
         return this.do(() => this._service.get(type, this.href(rel, params)));
     }
 
@@ -40,6 +41,12 @@ export class Resource {
 
     delete(rel = self, params: Params = {}): Observable<void> {
         return this.do(() => this._service.delete(this.href(rel, params)));
+    }
+
+    get<T extends Resource>(type: Type<T>, rel: string): T | undefined {
+        const obj = this._embedded[rel];
+
+        return obj && this._service.create(type, obj);
     }
 
     private do<T>(func: () => Observable<T>): Observable<T> {
