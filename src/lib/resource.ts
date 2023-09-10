@@ -1,5 +1,5 @@
 import { Type } from '@angular/core';
-import { Observable, map, throwError } from 'rxjs';
+import { NEVER, Observable, map, throwError } from 'rxjs';
 import * as URI from 'uri-template';
 import { Collection } from './collection';
 import { HalError } from './hal-error';
@@ -24,6 +24,10 @@ export class Resource {
 
     constructor(obj: Object) {
         Object.assign(this, obj);
+    }
+
+    refresh(): Observable<this> {
+        return this.read(<any>this.constructor, self);
     }
 
     create(obj: Object, rel = self, params: Params = {}):

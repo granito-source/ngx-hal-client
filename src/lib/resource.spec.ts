@@ -42,6 +42,115 @@ describe('Resource', () => {
         });
     });
 
+    describe('#refresh()', () => {
+        it('emits self resource when rel exists', () => {
+            let test!: TestResource;
+
+            resource.refresh().subscribe(r => test = r);
+
+            const req = spectator.expectOne('/api/v1', HttpMethod.GET);
+
+            req.flush({ prop: 'updated' });
+
+            expect(test).toBeInstanceOf(TestResource);
+            expect(test.prop).toBe('updated');
+        });
+
+        it('throws HAL error when self rel does not exist', () => {
+            const broken = spectator.service.create(TestResource, {
+                _links: {}
+            });
+            let error!: HalError;
+
+            broken.refresh().subscribe({
+                next: () => fail('no next is expected'),
+                complete: () => fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message)
+                .toBe('relation \'self\' is undefined');
+        });
+
+        it('throws HAL error when self rel does not have href', () => {
+            const broken = spectator.service.create(TestResource, {
+                _links: {
+                    self: {}
+                }
+            });
+            let error!: HalError;
+
+            broken.refresh().subscribe({
+                next: () => fail('no next is expected'),
+                complete: () => fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message)
+                .toBe('relation \'self\' does not have href');
+        });
+
+        it('throws HAL error when connection fails', () => {
+            let error!: HalError;
+
+            resource.refresh().subscribe({
+                next: () => fail('no next is expected'),
+                complete: () => fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            const req = spectator.expectOne('/api/v1', HttpMethod.GET);
+
+            req.error(new ProgressEvent('error'));
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBe('/api/v1');
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message)
+                .toMatch(/^Http failure response for \/api\/v1/);
+        });
+
+        it('throws HAL error when API reports error', () => {
+            let error!: HalError;
+
+            resource.refresh().subscribe({
+                next: () => fail('no next is expected'),
+                complete: () => fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            const req = spectator.expectOne('/api/v1', HttpMethod.GET);
+
+            req.flush({
+                message: 'not logged in',
+                exception: 'NotAuthenticatedException'
+            }, {
+                status: 401,
+                statusText: 'Unauthorized'
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBe('/api/v1');
+            expect(error.status).toBe(401);
+            expect(error.error).toBe('Unauthorized');
+            expect(error.message).toBe('not logged in');
+            expect(error['exception']).toBe('NotAuthenticatedException');
+        });
+    });
+
     describe('#create()', () => {
         let item: TestResource;
 
