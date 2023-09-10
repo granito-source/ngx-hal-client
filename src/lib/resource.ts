@@ -15,11 +15,11 @@ interface Link {
 const self = 'self';
 
 export class Resource {
-    private readonly _links: Record<string, Link> = {};
-
-    private readonly _embedded: Record<string, Object> = {};
+    protected readonly _embedded: Record<string, Object> = {};
 
     private readonly _service!: ResourceService;
+
+    private readonly _links: Record<string, Link> = {};
 
     constructor(obj: Object) {
         Object.assign(this, obj);
