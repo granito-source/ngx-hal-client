@@ -1,6 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, Type } from '@angular/core';
 import { Observable, catchError, map, throwError } from 'rxjs';
+import { Collection } from './collection';
 import { HalError } from './hal-error';
 import { Resource } from './resource';
 
@@ -11,6 +12,11 @@ export class ResourceService {
 
     create<T extends Resource>(type: Type<T>, obj: Object): T {
         return new type({ ...obj, _service: this });
+    }
+
+    createCollection<T extends Resource>(type: Type<T>, obj: Object):
+        Collection<T> {
+        return new Collection(type, { ...obj, _service: this });
     }
 
     get<T extends Resource>(type: Type<T>, uri: string): Observable<T> {
