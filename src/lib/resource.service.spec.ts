@@ -1,7 +1,7 @@
 import { createHttpFactory, HttpMethod, SpectatorHttp } from '@ngneat/spectator/jest';
 import { HalError } from './hal-error';
 import { Resource } from './resource';
-import { ResourceService } from './resource.service';
+import { ResourceService, ResourceServiceImpl } from './resource.service';
 
 class TestResource extends Resource {
     prop?: string;
@@ -13,7 +13,7 @@ class TestResource extends Resource {
 
 describe('ResourceService', () => {
     const createService = createHttpFactory({
-        service: ResourceService
+        service: ResourceServiceImpl
     });
     let spectator: SpectatorHttp<ResourceService>;
 
@@ -23,11 +23,11 @@ describe('ResourceService', () => {
         expect(spectator.service).toBeDefined();
     });
 
-    describe('#get()', () => {
+    describe('#getResource()', () => {
         it('emits resource when call is successful', () => {
             let resource!: TestResource;
 
-            spectator.service.get(TestResource, '/api/v1')
+            spectator.service.getResource(TestResource, '/api/v1')
                 .subscribe(r => resource = r);
 
             const req = spectator.expectOne('/api/v1', HttpMethod.GET);
@@ -43,7 +43,7 @@ describe('ResourceService', () => {
         it('throws HAL error when connection fails', () => {
             let error!: HalError;
 
-            spectator.service.get(TestResource, '/api/v2').subscribe({
+            spectator.service.getResource(TestResource, '/api/v2').subscribe({
                 next: () => fail('no next is expected'),
                 complete: () => fail('no complete is expected'),
                 error: err => error = err
@@ -65,7 +65,7 @@ describe('ResourceService', () => {
         it('throws HAL error when API reports error', () => {
             let error!: HalError;
 
-            spectator.service.get(TestResource, '/api/v3').subscribe({
+            spectator.service.getResource(TestResource, '/api/v3').subscribe({
                 next: () => fail('no next is expected'),
                 complete: () => fail('no complete is expected'),
                 error: err => error = err

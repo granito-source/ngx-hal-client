@@ -5,9 +5,15 @@ import { Collection } from './collection';
 import { HalError } from './hal-error';
 import { Resource } from './resource';
 
-@Injectable({ providedIn: 'root' })
-export class ResourceService {
+export abstract class ResourceService {
+    abstract getResource<T extends Resource>(type: Type<T>, uri: string):
+        Observable<T>;
+}
+
+@Injectable()
+export class ResourceServiceImpl extends ResourceService {
     constructor(private readonly http: HttpClient) {
+        super();
     }
 
     create<T extends Resource>(type: Type<T>, obj: Object): T {
@@ -19,9 +25,15 @@ export class ResourceService {
         return new Collection(type, { ...obj, _service: this });
     }
 
-    get<T extends Resource>(type: Type<T>, uri: string): Observable<T> {
+    getResource<T extends Resource>(type: Type<T>, uri: string):
+        Observable<T> {
+        return this.get(uri).pipe(
+            map(obj => this.create(type, obj))
+        );
+    }
+
+    get(uri: string): Observable<Object> {
         return this.http.get(uri).pipe(
-            map(obj => this.create(type, obj)),
             catchError(this.handleError)
         );
     }

@@ -1,6 +1,6 @@
 import { SpectatorHttp, createHttpFactory } from '@ngneat/spectator/jest';
 import { Resource } from './resource';
-import { ResourceService } from './resource.service';
+import { ResourceServiceImpl } from './resource.service';
 
 class TestResource extends Resource {
     prop?: string;
@@ -12,9 +12,9 @@ class TestResource extends Resource {
 
 describe('Collection', () => {
     const createService = createHttpFactory({
-        service: ResourceService
+        service: ResourceServiceImpl
     });
-    let spectator: SpectatorHttp<ResourceService>;
+    let spectator: SpectatorHttp<ResourceServiceImpl>;
 
     beforeEach(() => {
         spectator = createService();
@@ -36,7 +36,9 @@ describe('Collection', () => {
         });
 
         expect(collection.length).toBe(2);
+        expect(collection[0]).toBeInstanceOf(TestResource);
         expect(collection[0]).toHaveProperty('prop', 'first - 0');
+        expect(collection[1]).toBeInstanceOf(TestResource);
         expect(collection[1]).toHaveProperty('prop', 'first - 1');
         expect(collection[2]).toBeUndefined();
     });

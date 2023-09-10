@@ -1,8 +1,9 @@
 import { Type } from '@angular/core';
-import { Observable, throwError } from 'rxjs';
+import { Observable, map, throwError } from 'rxjs';
 import * as URI from 'uri-template';
+import { Collection } from './collection';
 import { HalError } from './hal-error';
-import { ResourceService } from './resource.service';
+import { ResourceServiceImpl } from './resource.service';
 
 type Params = Record<string, string | number | boolean>;
 
@@ -15,7 +16,7 @@ interface Link {
 const self = 'self';
 
 export class Resource {
-    protected readonly _service!: ResourceService;
+    protected readonly _service!: ResourceServiceImpl;
 
     protected readonly _embedded: Record<string, Object> = {};
 
@@ -32,7 +33,15 @@ export class Resource {
 
     read<T extends Resource>(type: Type<T>, rel: string, params: Params = {}):
         Observable<T> {
-        return this.do(() => this._service.get(type, this.href(rel, params)));
+        return this.do(() =>
+            this._service.getResource(type, this.href(rel, params)));
+    }
+
+    readCollection<T extends Resource>(type: Type<T>, rel: string,
+        params: Params = {}): Observable<Collection<T>> {
+        return this.do(() => this._service.get(this.href(rel, params)).pipe(
+            map(obj => this._service.createCollection(type, obj))
+        ));
     }
 
     update(): Observable<void> {

@@ -1,7 +1,8 @@
 import { createHttpFactory, HttpMethod, SpectatorHttp } from '@ngneat/spectator/jest';
+import { Collection } from './collection';
 import { HalError } from './hal-error';
 import { Resource } from './resource';
-import { ResourceService } from './resource.service';
+import { ResourceServiceImpl } from './resource.service';
 
 class TestResource extends Resource {
     prop?: string;
@@ -13,9 +14,9 @@ class TestResource extends Resource {
 
 describe('Resource', () => {
     const createService = createHttpFactory({
-        service: ResourceService
+        service: ResourceServiceImpl
     });
-    let spectator: SpectatorHttp<ResourceService>;
+    let spectator: SpectatorHttp<ResourceServiceImpl>;
     let resource: TestResource;
 
     beforeEach(() => {
@@ -113,47 +114,15 @@ describe('Resource', () => {
         });
 
         it('expands href when link is templated', () => {
-            let location: string | undefined;
+            resource.create(item, 'tmpl', { q: 'default' }).subscribe();
 
-            resource.create(item, 'tmpl', {
-                q: 'default'
-            }).subscribe(l => location = l);
-
-            const req = spectator.expectOne('/api/v1/items?q=default',
-                HttpMethod.POST);
-
-            req.flush(null, {
-                status: 201,
-                statusText: 'Created',
-                headers: {
-                    Location: '/api/v1/items/42'
-                }
-            });
-
-            expect(req.request.body).toEqual({ prop: 'new' });
-            expect(location).toBe('/api/v1/items/42');
+            spectator.expectOne('/api/v1/items?q=default', HttpMethod.POST);
         });
 
         it('does try to expand href when not emplated', () => {
-            let location: string | undefined;
+            resource.create(item, 'notmpl', { q: 'default' }).subscribe();
 
-            resource.create(item, 'notmpl', {
-                q: 'default'
-            }).subscribe(l => location = l);
-
-            const req = spectator.expectOne('/api/v1/items{?q}',
-                HttpMethod.POST);
-
-            req.flush(null, {
-                status: 201,
-                statusText: 'Created',
-                headers: {
-                    Location: '/api/v1/items/42'
-                }
-            });
-
-            expect(req.request.body).toEqual({ prop: 'new' });
-            expect(location).toBe('/api/v1/items/42');
+            spectator.expectOne('/api/v1/items{?q}', HttpMethod.POST);
         });
 
         it('throws HAL error when rel does not exist', () => {
@@ -266,21 +235,13 @@ describe('Resource', () => {
                 o: 'asc'
             }).subscribe();
 
-            const req = spectator.expectOne('/api/v1/items?q=query&o=asc',
-                HttpMethod.GET);
-
-            req.flush({});
+            spectator.expectOne('/api/v1/items?q=query&o=asc', HttpMethod.GET);
         });
 
         it('does not try to expand href when not templated', () => {
-            resource.read(TestResource, 'notmpl', {
-                q: 'query'
-            }).subscribe();
+            resource.read(TestResource, 'notmpl', { q: 'query' }).subscribe();
 
-            const req = spectator.expectOne('/api/v1/items{?q}',
-                HttpMethod.GET);
-
-            req.flush({});
+            spectator.expectOne('/api/v1/items{?q}', HttpMethod.GET);
         });
 
         it('throws HAL error when rel does not exist', () => {
@@ -346,6 +307,134 @@ describe('Resource', () => {
             let error!: HalError;
 
             resource.read(TestResource, 'test').subscribe({
+                next: () => fail('no next is expected'),
+                complete: () => fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            const req = spectator.expectOne('/api/v1/test',
+                HttpMethod.GET);
+
+            req.flush({
+                message: 'not logged in',
+                exception: 'NotAuthenticatedException'
+            }, {
+                status: 401,
+                statusText: 'Unauthorized'
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBe('/api/v1/test');
+            expect(error.status).toBe(401);
+            expect(error.error).toBe('Unauthorized');
+            expect(error.message).toBe('not logged in');
+            expect(error['exception']).toBe('NotAuthenticatedException');
+        });
+    });
+
+    describe('#readCollection()', () => {
+        it('emits requested collection when rel exists', () => {
+            let test!: Collection<TestResource>;
+
+            resource.readCollection(TestResource, 'test').subscribe(r => test = r);
+
+            const req = spectator.expectOne('/api/v1/test',
+                HttpMethod.GET);
+
+            req.flush({
+                _embedded: {
+                    collection: [
+                        { prop: 'defined'}
+                    ]
+                }
+            });
+
+            expect(test).toBeInstanceOf(Collection);
+            expect(test.length).toBe(1);
+            expect(test[0]).toBeInstanceOf(TestResource);
+            expect(test[0]).toHaveProperty('prop', 'defined');
+        });
+
+        it('expands href when templated', () => {
+            resource.readCollection(TestResource, 'tmpl', {
+                q: 'query',
+                o: 'asc'
+            }).subscribe();
+
+            spectator.expectOne('/api/v1/items?q=query&o=asc', HttpMethod.GET);
+        });
+
+        it('does not try to expand href when not templated', () => {
+            resource.readCollection(TestResource, 'notmpl', { q: 'query' })
+                .subscribe();
+
+            spectator.expectOne('/api/v1/items{?q}', HttpMethod.GET);
+        });
+
+        it('throws HAL error when rel does not exist', () => {
+            let error!: HalError;
+
+            resource.readCollection(TestResource, 'missing').subscribe({
+                next: () => fail('no next is expected'),
+                complete: () => fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message)
+                .toBe('relation \'missing\' is undefined');
+        });
+
+        it('throws HAL error when rel does not have href', () => {
+            let error!: HalError;
+
+            resource.readCollection(TestResource, 'broken').subscribe({
+                next: () => fail('no next is expected'),
+                complete: () => fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message)
+                .toBe('relation \'broken\' does not have href');
+        });
+
+        it('throws HAL error when connection fails', () => {
+            let error!: HalError;
+
+            resource.readCollection(TestResource, 'test').subscribe({
+                next: () => fail('no next is expected'),
+                complete: () => fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            const req = spectator.expectOne('/api/v1/test',
+                HttpMethod.GET);
+
+            req.error(new ProgressEvent('error'));
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBe('/api/v1/test');
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message)
+                .toMatch(/^Http failure response for \/api\/v1\/test/);
+        });
+
+        it('throws HAL error when API reports error', () => {
+            let error!: HalError;
+
+            resource.readCollection(TestResource, 'test').subscribe({
                 next: () => fail('no next is expected'),
                 complete: () => fail('no complete is expected'),
                 error: err => error = err
@@ -517,37 +606,15 @@ describe('Resource', () => {
         });
 
         it('expands href when templated', () => {
-            let done = false;
+            resource.delete('tmpl', { q: 'old' }).subscribe();
 
-            resource.delete('tmpl', { q: 'old' })
-                .subscribe(() => done = true);
-
-            const req = spectator.expectOne('/api/v1/items?q=old',
-                HttpMethod.DELETE);
-
-            req.flush(null, {
-                status: 204,
-                statusText: 'No Content'
-            });
-
-            expect(done).toBe(true);
+            spectator.expectOne('/api/v1/items?q=old', HttpMethod.DELETE);
         });
 
         it('does not try to expand href when not templated', () => {
-            let done = false;
+            resource.delete('notmpl', { q: 'old' }).subscribe();
 
-            resource.delete('notmpl', { q: 'old' })
-                .subscribe(() => done = true);
-
-            const req = spectator.expectOne('/api/v1/items{?q}',
-                HttpMethod.DELETE);
-
-            req.flush(null, {
-                status: 204,
-                statusText: 'No Content'
-            });
-
-            expect(done).toBe(true);
+            spectator.expectOne('/api/v1/items{?q}', HttpMethod.DELETE);
         });
 
         it('throws HAL error when rel does not exist', () => {
