@@ -6,10 +6,6 @@ import { ResourceServiceImpl } from './resource.service';
 
 class TestResource extends Resource {
     prop?: string;
-
-    constructor(obj: Object) {
-        super(obj);
-    }
 }
 
 describe('Resource', () => {
@@ -337,7 +333,8 @@ describe('Resource', () => {
         it('emits requested collection when rel exists', () => {
             let test!: Collection<TestResource>;
 
-            resource.readCollection(TestResource, 'test').subscribe(r => test = r);
+            resource.readCollection(TestResource, 'test')
+                .subscribe(r => test = r);
 
             const req = spectator.expectOne('/api/v1/test',
                 HttpMethod.GET);
@@ -351,9 +348,9 @@ describe('Resource', () => {
             });
 
             expect(test).toBeInstanceOf(Collection);
-            expect(test.length).toBe(1);
-            expect(test[0]).toBeInstanceOf(TestResource);
-            expect(test[0]).toHaveProperty('prop', 'defined');
+            expect(test.data.length).toBe(1);
+            expect(test.data[0]).toBeInstanceOf(TestResource);
+            expect(test.data[0]).toHaveProperty('prop', 'defined');
         });
 
         it('expands href when templated', () => {

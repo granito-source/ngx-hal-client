@@ -5,10 +5,6 @@ import { ResourceService, ResourceServiceImpl } from './resource.service';
 
 class TestResource extends Resource {
     prop?: string;
-
-    constructor(obj: Object) {
-        super(obj);
-    }
 }
 
 describe('ResourceService', () => {
