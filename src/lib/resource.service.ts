@@ -62,6 +62,9 @@ export class ResourceServiceImpl extends ResourceService {
     }
 
     private sanitize(body: Object): Object {
+        if (Array.isArray(body))
+            return body.map(x => this.sanitize(x));
+
         return {
             ...body,
             _service: undefined,

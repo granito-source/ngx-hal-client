@@ -162,8 +162,7 @@ describe('Resource', () => {
 
             resource.create(item, 'tmpl').subscribe(l => location = l);
 
-            const req = spectator.expectOne('/api/v1/items',
-                HttpMethod.POST);
+            const req = spectator.expectOne('/api/v1/items', HttpMethod.POST);
 
             req.flush(null, {
                 status: 201,
@@ -175,6 +174,29 @@ describe('Resource', () => {
 
             expect(req.request.body).toEqual({ prop: 'new' });
             expect(location).toBe('/api/v1/items/42');
+        });
+
+        it('posts payload to link and emits location when array of resources', () => {
+            let location: string | undefined;
+
+            resource.create([item, item], 'test')
+                .subscribe(l => location = l);
+
+            const req = spectator.expectOne('/api/v1/test', HttpMethod.POST);
+
+            req.flush(null, {
+                status: 201,
+                statusText: 'Created',
+                headers: {
+                    Location: '/api/v1/test'
+                }
+            });
+
+            expect(req.request.body).toEqual([
+                { prop: 'new' },
+                { prop: 'new' }
+            ]);
+            expect(location).toBe('/api/v1/test');
         });
 
         it('emits undefined when no location header', () => {
