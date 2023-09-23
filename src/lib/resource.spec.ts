@@ -30,12 +30,8 @@ describe('Resource', () => {
                     prop: 'defined'
                 },
                 array: [
-                    {
-                        prop: 'one'
-                    },
-                    {
-                        prop: 'two'
-                    }
+                    { prop: 'one' },
+                    { prop: 'two' }
                 ],
                 empty: []
             }

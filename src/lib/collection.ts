@@ -1,10 +1,11 @@
 import { Type } from '@angular/core';
+import { Observable } from 'rxjs';
 import { Resource } from './resource';
 
 export class Collection<T extends Resource> extends Resource {
     readonly data: T[];
 
-    constructor(type: Type<T>, obj: Object) {
+    constructor(private type: Type<T>, obj: Object) {
         super(obj);
 
         for (const rel in this._embedded) {
@@ -18,5 +19,9 @@ export class Collection<T extends Resource> extends Resource {
         }
 
         this.data = [];
+    }
+
+    override refresh(): Observable<this> {
+        return this.readCollection(this.type, 'self') as Observable<this>;
     }
 }

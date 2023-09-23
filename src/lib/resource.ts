@@ -1,5 +1,5 @@
 import { Type } from '@angular/core';
-import { NEVER, Observable, map, throwError } from 'rxjs';
+import { Observable, map, throwError } from 'rxjs';
 import * as URI from 'uri-template';
 import { Collection } from './collection';
 import { HalError } from './hal-error';
