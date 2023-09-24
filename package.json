@@ -1,21 +1,19 @@
 {
   "name": "@granito/ngx-hal-client",
-  "version": "1.0.0-SNAPSHOT",
+  "version": "1.0.0-dev.0",
   "license": "MIT",
   "description": "A HAL client to be used in Angular applications",
   "repository": {
     "type": "git",
-    "url": "https://github.com/granito-source/ngx-hal-client.git"
+    "url": "git+https://github.com/granito-source/ngx-hal-client.git"
   },
   "bugs": {
     "url": "https://github.com/granito-source/ngx-hal-client/issues"
   },
   "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "build": "npm ci && ng build",
+    "test": "ng test",
+    "clean": "rm -rf .angular node_modules build"
   },
   "sideEffects": false,
   "peerDependencies": {
