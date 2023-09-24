@@ -38,7 +38,7 @@ export class ResourceServiceImpl extends ResourceService {
         );
     }
 
-    post(uri: string, body: Object): Observable<string | undefined> {
+    post(uri: string, body: any): Observable<string | undefined> {
         return this.http.post(uri, this.sanitize(body), {
             observe: 'response'
         }).pipe(
@@ -61,16 +61,16 @@ export class ResourceServiceImpl extends ResourceService {
         );
     }
 
-    private sanitize(body: Object): Object {
+    private sanitize(body: any): any {
+        if (typeof body !== 'object' || body === null)
+            return body;
+
         if (Array.isArray(body))
             return body.map(x => this.sanitize(x));
 
-        return {
-            ...body,
-            _service: undefined,
-            _links: undefined,
-            _embedded: undefined
-        };
+        const { _service, _links, _embedded, ...sanitized } = body;
+
+        return sanitized;
     }
 
     private handleError(err: HttpErrorResponse): Observable<never> {
