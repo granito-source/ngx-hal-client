@@ -65,6 +65,9 @@ export class ResourceServiceImpl extends ResourceService {
         if (typeof body !== 'object' || body === null)
             return body;
 
+        if (body instanceof Collection)
+            return this.sanitize(body.data);
+
         if (Array.isArray(body))
             return body.map(x => this.sanitize(x));
 

@@ -220,6 +220,36 @@ describe('Resource', () => {
             expect(location).toBe('/api/v1/test');
         });
 
+        it('posts array to link and emits location when collection', () => {
+            const collection = spectator.service.createCollection(TestResource, {
+                _embedded: {
+                    collection: [
+                        { prop: 'one' },
+                        { prop: 'two' }
+                    ]
+                }
+            });
+            let location: string | undefined;
+
+            resource.create(collection, 'test').subscribe(l => location = l);
+
+            const req = spectator.expectOne('/api/v1/test', HttpMethod.POST);
+
+            req.flush(null, {
+                status: 201,
+                statusText: 'Created',
+                headers: {
+                    Location: '/api/v1/test'
+                }
+            });
+
+            expect(req.request.body).toEqual([
+                { prop: 'one' },
+                { prop: 'two' }
+            ]);
+            expect(location).toBe('/api/v1/test');
+        });
+
         it('emits undefined when no location header', () => {
             let location: string | undefined = 'defined';
 
