@@ -4,8 +4,9 @@
   "license": "MIT",
   "description": "A HAL client to be used in Angular applications",
   "keywords": [
+    "angular",
     "hal",
-    "angular"
+    "hateoas"
   ],
   "repository": {
     "type": "git",
