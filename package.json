@@ -3,6 +3,10 @@
   "version": "1.0.0-dev.1",
   "license": "MIT",
   "description": "A HAL client to be used in Angular applications",
+  "keywords": [
+    "hal",
+    "angular"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/granito-source/ngx-hal-client.git"
@@ -11,7 +15,7 @@
     "url": "https://github.com/granito-source/ngx-hal-client/issues"
   },
   "scripts": {
-    "build": "npm ci && ng build",
+    "build": "ng build",
     "test": "ng test",
     "clean": "rm -rf .angular node_modules build"
   },
