@@ -8,9 +8,9 @@ import { ResourceServiceImpl } from './resource.service';
 type Params = Record<string, string | number | boolean>;
 
 interface Link {
-    templated?: boolean;
-
     href: string;
+
+    templated?: boolean;
 }
 
 const self = 'self';
