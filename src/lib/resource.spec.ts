@@ -23,7 +23,14 @@ describe('Resource', () => {
         resource = new TestResource({
             _client: spectator.httpClient,
             _links: {
-                self: { href: '/api/test' }
+                self: { href: '/api/test' },
+                find: {
+                    href: '/api/search{?q}',
+                    templated: true
+                },
+                notmpl: {
+                    href: '/api/search{?q}'
+                }
             },
             version: '1.7.2'
         });
@@ -44,6 +51,37 @@ describe('Resource', () => {
     it('gets created', () => {
         expect(resource).toBeDefined();
         expect(resource.self).toBe('/api/test');
+    });
+
+    describe('#follow()', () => {
+        it('returns undefined when rel does not exist', () => {
+            expect(resource.follow('missing')).toBeUndefined();
+        });
+
+        it('returns undefined when rel does not have href', () => {
+            expect(noHref.follow('self')).toBeUndefined();
+        });
+
+        it('returns accessor with link when rel exists', () => {
+            const accessor = resource.follow('find');
+
+            expect(accessor).toBeDefined();
+            expect(accessor?.self).toBe('/api/search');
+        });
+
+        it('expands parameters when link is templated', () => {
+            const accessor = resource.follow('find', { q: 'test'});
+
+            expect(accessor).toBeDefined();
+            expect(accessor?.self).toBe('/api/search?q=test');
+        });
+
+        it('does not expand parameters when link is not templated', () => {
+            const accessor = resource.follow('notmpl', { q: 'test'});
+
+            expect(accessor).toBeDefined();
+            expect(accessor?.self).toBe('/api/search{?q}');
+        });
     });
 
     describe('#create()', () => {
