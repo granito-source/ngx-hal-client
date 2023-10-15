@@ -1,27 +1,34 @@
 import { Type } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, catchError, map } from 'rxjs';
 import { Resource } from './resource';
 
 export class Collection<T extends Resource> extends Resource {
-    readonly data: T[];
-
-    constructor(private type: Type<T>, obj: Object) {
-        super(obj);
-
+    get rawValues(): Object[] {
         for (const rel in this._embedded) {
-            const value = this._embedded[rel];
+            const values = this._embedded[rel];
 
-            if (Array.isArray(value)) {
-                this.data = value.map(obj => this._service.create(type, obj));
-
-                return;
-            }
+            if (Array.isArray(values))
+                return values;
         }
 
-        this.data = [];
+        return [];
     }
 
-    override refresh(): Observable<this> {
-        return this.readCollection(this.type, 'self') as Observable<this>;
+    get values(): T[] {
+        return this.arrayOf(this.type, this.rawValues);
+    }
+
+    constructor(private readonly type: Type<T>, obj: Object) {
+        super(obj);
+    }
+
+    override read(): Observable<this> {
+        return this._client.get(this.self).pipe(
+            map(obj => new Collection(this.type, {
+                ...obj,
+                 _client: this._client
+            }) as this),
+            catchError(this.handleError)
+        );
     }
 }
