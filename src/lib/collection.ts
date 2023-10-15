@@ -3,23 +3,22 @@ import { Observable, catchError, map } from 'rxjs';
 import { Resource } from './resource';
 
 export class Collection<T extends Resource> extends Resource {
-    get rawValues(): Object[] {
-        for (const rel in this._embedded) {
-            const values = this._embedded[rel];
-
-            if (Array.isArray(values))
-                return values;
-        }
-
-        return [];
-    }
-
-    get values(): T[] {
-        return this.arrayOf(this.type, this.rawValues);
-    }
+    readonly values: T[];
 
     constructor(private readonly type: Type<T>, obj: Object) {
         super(obj);
+
+        for (const rel in this._embedded) {
+            const values = this._embedded[rel];
+
+            if (Array.isArray(values)) {
+                this.values = this.arrayOf(type, values);
+
+                return;
+            }
+        }
+
+        this.values = [];
     }
 
     override read(): Observable<this> {

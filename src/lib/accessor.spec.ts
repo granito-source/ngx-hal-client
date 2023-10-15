@@ -316,13 +316,9 @@ describe('Accessor', () => {
             });
 
             expect(next).toBeInstanceOf(Collection);
-            expect(next.rawValues).toEqual([
-                {
-                    version: '1.0.0'
-                },
-                {
-                    version: '2.0.0'
-                }
+            expect(next.values.map(x => x.version)).toEqual([
+                '1.0.0',
+                '2.0.0'
             ]);
             expect(complete).toBe(true);
         });

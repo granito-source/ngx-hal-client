@@ -16,9 +16,9 @@ interface Link {
 export abstract class HalBase {
     protected readonly _client!: HttpClient;
 
-    protected readonly _links: Record<string, Link> = {};
+    protected readonly _links: Readonly<Record<string, Link>> = {};
 
-    protected readonly _embedded: Record<string, Object> = {};
+    protected readonly _embedded: Readonly<Record<string, Object>> = {};
 
     get self(): string {
         return this._links[self]?.href;
@@ -73,7 +73,7 @@ export abstract class HalBase {
             return body;
 
         if (body instanceof Collection)
-            return this.sanitize(body.rawValues);
+            return this.sanitize(body.values);
 
         if (Array.isArray(body))
             return body.map(x => this.sanitize(x));
