@@ -32,6 +32,16 @@ describe('Resource', () => {
                     href: '/api/search{?q}'
                 }
             },
+            _embedded: {
+                test: {
+                    version: '1.0.0'
+                },
+                array: [
+                    { version: '2.0.0' },
+                    { version: '3.0.0' }
+                ],
+                empty: []
+            },
             version: '1.7.2'
         });
         noSelf = new TestResource({
@@ -628,6 +638,58 @@ describe('Resource', () => {
             expect(error.error).toBe('Unauthorized');
             expect(error.message).toBe('not logged in');
             expect(error['exception']).toBe('NotAuthenticatedException');
+        });
+    });
+
+    describe('#get()', () => {
+        it('returns undefined when embedded rel does not exist', () => {
+            expect(resource.get(TestResource, 'missing')).toBeUndefined();
+        });
+
+        it('returns resource when embedded rel exists', () => {
+            const test = resource.get(TestResource, 'test');
+
+            expect(test).toBeDefined();
+            expect(test?.version).toBe('1.0.0');
+        });
+
+        it('returns first resource when embedded rel is array', () => {
+            const one = resource.get(TestResource, 'array');
+
+            expect(one).toBeDefined();
+            expect(one?.version).toBe('2.0.0');
+        });
+
+        it('returns undefined when embedded rel is empty array', () => {
+            expect(resource.get(TestResource, 'empty')).toBeUndefined()
+        });
+    });
+
+    describe('#getArray()', () => {
+        it('returns undefined when embedded rel does not exist', () => {
+            expect(resource.getArray(TestResource, 'missing'))
+                .toBeUndefined();
+        });
+
+        it('returns array of resources when embedded rel is array', () => {
+            const array = resource.getArray(TestResource, 'array');
+
+            expect(array).toBeDefined();
+            expect(array?.map(x => x.version)).toEqual(['2.0.0', '3.0.0']);
+        });
+
+        it('returns empty when embedded rel is empty array', () => {
+            const array = resource.getArray(TestResource, 'empty');
+
+            expect(array).toBeDefined();
+            expect(array?.map(x => 1)).toEqual([]);
+        });
+
+        it('wraps value in array when rel is not array', () => {
+            const array = resource.getArray(TestResource, 'test');
+
+            expect(array).toBeDefined();
+            expect(array?.map(x => x.version)).toEqual(['1.0.0']);
         });
     });
 });
