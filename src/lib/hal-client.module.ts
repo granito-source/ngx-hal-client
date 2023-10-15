@@ -1,13 +1,8 @@
 import { NgModule } from '@angular/core';
-import { ResourceService, ResourceServiceImpl } from './resource.service';
+import { HalClientService } from './hal-client.service';
 
 @NgModule({
-    providers: [
-        {
-            provide: ResourceService,
-            useClass: ResourceServiceImpl
-        }
-    ]
+    providers: [HalClientService]
 })
 export class HalClientModule {
 }
