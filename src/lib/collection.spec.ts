@@ -33,6 +33,7 @@ describe('Collection', () => {
                 }
             },
             _embedded: {
+                primitive: 42,
                 object: {
                     version: '1.0.0'
                 },
@@ -70,6 +71,31 @@ describe('Collection', () => {
     it('gets created', () => {
         expect(collection).toBeDefined();
         expect(collection.self).toBe('/api/test');
+    });
+
+    describe('#values', () => {
+        it('uses first embedded array', () => {
+            const values = collection.values;
+
+            expect(values.length).toBe(2);
+            expect(values[0]).toBeInstanceOf(TestResource);
+            expect(values[0]).toHaveProperty('version', '2.0.0');
+            expect(values[1]).toBeInstanceOf(TestResource);
+            expect(values[1]).toHaveProperty('version', '3.0.0');
+            expect(values[2]).toBeUndefined();
+        });
+
+        it('initializes as empty when no embedded arrays', () => {
+            const empty = new Collection(TestResource, {
+                _client: spectator.httpClient,
+                _embedded: {
+                    num: 42
+                }
+            }).values;
+
+            expect(empty.length).toBe(0);
+            expect(empty[0]).toBeUndefined();
+        });
     });
 
     describe('#follow()', () => {
