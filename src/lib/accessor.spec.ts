@@ -37,7 +37,7 @@ describe('Accessor', () => {
                 next: r => next = r,
                 complete: () => complete = true,
                 error: () => fail('no error is expected')
-            })
+            });
 
             const req = spectator.expectOne('/api/root', HttpMethod.POST);
 
@@ -62,7 +62,7 @@ describe('Accessor', () => {
                 next: r => next = r,
                 complete: () => complete = true,
                 error: () => fail('no error is expected')
-            })
+            });
 
             const req = spectator.expectOne('/api/root', HttpMethod.POST);
 
@@ -90,7 +90,7 @@ describe('Accessor', () => {
                 next: r => next = r,
                 complete: () => complete = true,
                 error: () => fail('no error is expected')
-            })
+            });
 
             const req = spectator.expectOne('/api/root', HttpMethod.POST);
 
@@ -124,7 +124,7 @@ describe('Accessor', () => {
                 next: r => next = r,
                 complete: () => complete = true,
                 error: () => fail('no error is expected')
-            })
+            });
 
             const req = spectator.expectOne('/api/root', HttpMethod.POST);
 
@@ -153,7 +153,7 @@ describe('Accessor', () => {
                 next: r => next = r,
                 complete: () => complete = true,
                 error: () => fail('no error is expected')
-            })
+            });
 
             const req = spectator.expectOne('/api/root', HttpMethod.POST);
 
@@ -227,7 +227,7 @@ describe('Accessor', () => {
                 next: r => next = r,
                 complete: () => complete = true,
                 error: () => fail('no error is expected')
-            })
+            });
 
             const req = spectator.expectOne('/api/root', HttpMethod.GET);
 
@@ -298,7 +298,7 @@ describe('Accessor', () => {
                 next: r => next = r,
                 complete: () => complete = true,
                 error: () => fail('no error is expected')
-            })
+            });
 
             const req = spectator.expectOne('/api/root', HttpMethod.GET);
 
@@ -387,7 +387,7 @@ describe('Accessor', () => {
                 next: () => next = true,
                 complete: () => complete = true,
                 error: () => fail('no error is expected')
-            })
+            });
 
             const req = spectator.expectOne('/api/root', HttpMethod.DELETE);
 

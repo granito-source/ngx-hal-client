@@ -57,7 +57,7 @@ describe('Resource', () => {
                 next: r => next = r,
                 complete: () => complete = true,
                 error: () => fail('no error is expected')
-            })
+            });
 
             const req = spectator.expectOne('/api/test', HttpMethod.POST);
 
@@ -74,6 +74,40 @@ describe('Resource', () => {
             expect(complete).toBe(true);
         });
 
+        it('throws HAL error when self rel does not exist', () => {
+            let error!: HalError;
+
+            noSelf.create(item).subscribe({
+                next: () => fail('no next is expected'),
+                complete: () => fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message).toBe('no valid "self" relation');
+        });
+
+        it('throws HAL error when self rel does have href', () => {
+            let error!: HalError;
+
+            noHref.create(item).subscribe({
+                next: () => fail('no next is expected'),
+                complete: () => fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message).toBe('no valid "self" relation');
+        });
+
         it('posts array when payload is array of resources', () => {
             let next: Accessor | undefined;
             let complete = false;
@@ -82,7 +116,7 @@ describe('Resource', () => {
                 next: r => next = r,
                 complete: () => complete = true,
                 error: () => fail('no error is expected')
-            })
+            });
 
             const req = spectator.expectOne('/api/test', HttpMethod.POST);
 
@@ -110,7 +144,7 @@ describe('Resource', () => {
                 next: r => next = r,
                 complete: () => complete = true,
                 error: () => fail('no error is expected')
-            })
+            });
 
             const req = spectator.expectOne('/api/test', HttpMethod.POST);
 
@@ -144,7 +178,7 @@ describe('Resource', () => {
                 next: r => next = r,
                 complete: () => complete = true,
                 error: () => fail('no error is expected')
-            })
+            });
 
             const req = spectator.expectOne('/api/test', HttpMethod.POST);
 
@@ -173,7 +207,7 @@ describe('Resource', () => {
                 next: r => next = r,
                 complete: () => complete = true,
                 error: () => fail('no error is expected')
-            })
+            });
 
             const req = spectator.expectOne('/api/test', HttpMethod.POST);
 
@@ -247,7 +281,7 @@ describe('Resource', () => {
                 next: r => next = r,
                 complete: () => complete = true,
                 error: () => fail('no error is expected')
-            })
+            });
 
             const req = spectator.expectOne('/api/test', HttpMethod.GET);
 
@@ -256,6 +290,40 @@ describe('Resource', () => {
             expect(next).toBeInstanceOf(TestResource);
             expect(next?.version).toBe('2.7.1');
             expect(complete).toBe(true);
+        });
+
+        it('throws HAL error when self rel does not exist', () => {
+            let error!: HalError;
+
+            noSelf.read().subscribe({
+                next: () => fail('no next is expected'),
+                complete: () => fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message).toBe('no valid "self" relation');
+        });
+
+        it('throws HAL error when self rel does not have href', () => {
+            let error!: HalError;
+
+            noHref.read().subscribe({
+                next: () => fail('no next is expected'),
+                complete: () => fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message).toBe('no valid "self" relation');
         });
 
         it('throws HAL error when connection fails', () => {
@@ -319,7 +387,7 @@ describe('Resource', () => {
                 next: r => next = r,
                 complete: () => complete = true,
                 error: () => fail('no error is expected')
-            })
+            });
 
             const req = spectator.expectOne('/api/test', HttpMethod.PUT);
 
@@ -427,7 +495,7 @@ describe('Resource', () => {
                 next: () => next = true,
                 complete: () => complete = true,
                 error: () => fail('no error is expected')
-            })
+            });
 
             const req = spectator.expectOne('/api/test', HttpMethod.DELETE);
 
@@ -438,6 +506,40 @@ describe('Resource', () => {
 
             expect(next).toBe(true);
             expect(complete).toBe(true);
+        });
+
+        it('throws HAL error when self rel does not exist', () => {
+            let error!: HalError;
+
+            noSelf.delete().subscribe({
+                next: () => fail('no next is expected'),
+                complete: () => fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message).toBe('no valid "self" relation');
+        });
+
+        it('throws HAL error when self rel does not have href', () => {
+            let error!: HalError;
+
+            noHref.delete().subscribe({
+                next: () => fail('no next is expected'),
+                complete: () => fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message).toBe('no valid "self" relation');
         });
 
         it('throws HAL error when connection fails', () => {

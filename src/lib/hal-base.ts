@@ -29,20 +29,35 @@ export abstract class HalBase {
     }
 
     create(obj: any): Observable<Accessor | undefined> {
-        return this._client.post(this.self, this.sanitize(obj), {
-            observe: 'response'
-        }).pipe(
-            map(response => response.headers.get('Location') || undefined),
-            map(location => !location ? undefined : this.accessor(location)),
-            catchError(this.handleError)
+        return this.withSelf(
+            self => this._client.post(self, this.sanitize(obj), {
+                observe: 'response'
+            }).pipe(
+                map(response => response.headers.get('Location') || undefined),
+                map(location => !location ? undefined : this.accessor(location)),
+                catchError(this.handleError)
+            )
         );
     }
 
     delete(): Observable<void> {
-        return this._client.delete(this.self).pipe(
-            map(() => undefined),
-            catchError(this.handleError)
+        return this.withSelf(
+            self => this._client.delete(self).pipe(
+                map(() => undefined),
+                catchError(this.handleError)
+            )
         );
+    }
+
+    protected withSelf<T>(func: (uri: string) => Observable<T>): Observable<T> {
+        const self = this.self;
+
+        if (!self)
+            return throwError(() => new HalError({
+                message: 'no valid "self" relation'
+            }));
+
+        return func(self);
     }
 
     protected accessor(href: string): Accessor {

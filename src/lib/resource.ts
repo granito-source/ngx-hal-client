@@ -1,9 +1,8 @@
 import { Type } from '@angular/core';
-import { Observable, catchError, map, throwError } from 'rxjs';
+import { Observable, catchError, map } from 'rxjs';
 import * as URI from 'uri-template';
 import { Accessor } from './accessor';
 import { HalBase } from './hal-base';
-import { HalError } from './hal-error';
 
 type Params = Record<string, string | number | boolean>;
 
@@ -24,23 +23,20 @@ export class Resource extends HalBase {
     read(): Observable<this> {
         const type = this.constructor as Type<this>;
 
-        return this._client.get(this.self).pipe(
-            map(obj => this.instanceOf(type, obj)),
-            catchError(this.handleError)
+        return this.withSelf(
+            self => this._client.get(self).pipe(
+                map(obj => this.instanceOf(type, obj)),
+                catchError(this.handleError)
+            )
         );
     }
 
     update(): Observable<Accessor> {
-        const uri = this.self;
-
-        if (!uri)
-            return throwError(() => new HalError({
-                message: 'no valid "self" relation'
-            }));
-
-        return this._client.put(uri, this.sanitize(this)).pipe(
-            map(() => this.accessor(uri)),
-            catchError(this.handleError)
+        return this.withSelf(
+            self => this._client.put(self, this.sanitize(this)).pipe(
+                map(() => this.accessor(self)),
+                catchError(this.handleError)
+            )
         );
     }
 
