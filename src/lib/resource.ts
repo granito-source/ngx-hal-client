@@ -6,7 +6,18 @@ import { HalBase } from './hal-base';
 
 type Params = Record<string, string | number | boolean>;
 
+/**
+ * This class repesents an in-memory instance of a HAL resource.
+ */
 export class Resource extends HalBase {
+    /**
+     * Follow the relation link. Returns an accessor for the resource
+     * or `undefined` if no such relation exists.
+     *
+     * @param rel the name of the relation link
+     * @param params parameters for a templated link
+     * @returns an accessor for the linked resource or `undefined`
+     */
     follow(rel: string, params: Params = {}): Accessor | undefined {
         const link = this._links[rel];
 
@@ -20,6 +31,12 @@ export class Resource extends HalBase {
                 URI.parse(uri).expand(params));
     }
 
+    /**
+     * Refresh the the resource. In other words, read the resource
+     * identified by `self` link.
+     *
+     * @returns an observable of the refreshed resource instance
+     */
     read(): Observable<this> {
         const type = this.constructor as Type<this>;
 
@@ -31,6 +48,12 @@ export class Resource extends HalBase {
         );
     }
 
+    /**
+     * Persit the resource. Uses `PUT` request to send the new resource
+     * state.
+     *
+     * @returns an observable of resource accessor
+     */
     update(): Observable<Accessor> {
         return this.withSelf(
             self => this._client.put(self, this.sanitize(this)).pipe(
@@ -40,6 +63,15 @@ export class Resource extends HalBase {
         );
     }
 
+    /**
+     * Returns a single embedded resource or `undefined` if no such
+     * embedded exists. If the named resource is an array it returns
+     * the first element.
+     *
+     * @param type the resource type
+     * @param rel the name of the embedded resource
+     * @returns the resource or `undefined`
+     */
     get<T extends Resource>(type: Type<T>, rel: string): T | undefined {
         const obj = this._embedded[rel];
 
@@ -53,6 +85,15 @@ export class Resource extends HalBase {
         return obj && this.instanceOf(type, obj);
     }
 
+    /**
+     * Returns an embedded array of resources or `undefined` if the named
+     * embedded does not exist. If the named resource is not an array it
+     * wraps the resource in an array.
+     *
+     * @param type the element resource type
+     * @param rel the name of the embedded resource array
+     * @returns the resource array or `undefined`
+     */
     getArray<T extends Resource>(type: Type<T>, rel: string):
         T[] | undefined {
         const obj = this._embedded[rel];

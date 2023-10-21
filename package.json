@@ -2,7 +2,7 @@
   "name": "@granito/ngx-hal-client",
   "version": "1.0.0-dev.2",
   "license": "MIT",
-  "description": "A HAL client to be used in Angular applications",
+  "description": "A HAL client to be used in Angular projects",
   "keywords": [
     "angular",
     "hal",
