@@ -2,9 +2,16 @@ import { Type } from '@angular/core';
 import { Observable, catchError, map } from 'rxjs';
 import { Resource } from './resource';
 
+/**
+ * This class represents an in-memory collection of resources.
+ */
 export class Collection<T extends Resource> extends Resource {
     readonly values: T[];
 
+    /**
+     * @param type the element resource type
+     * @param obj the object used to assign the properties
+     */
     constructor(private readonly type: Type<T>, obj: Object) {
         super(obj);
 
@@ -21,6 +28,12 @@ export class Collection<T extends Resource> extends Resource {
         this.values = [];
     }
 
+    /**
+     * Refresh the the resource collection. In other words, read
+     * the resource collection identified by `self` link.
+     *
+     * @returns an observable of the refreshed resource collection instance
+     */
     override read(): Observable<this> {
         return this._client.get(this.self).pipe(
             map(obj => new Collection(this.type, {

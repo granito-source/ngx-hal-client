@@ -13,6 +13,9 @@ interface Link {
     templated?: boolean;
 }
 
+/**
+ * The common base for resource and accessor.
+ */
 export abstract class HalBase {
     protected readonly _client!: HttpClient;
 
@@ -20,14 +23,30 @@ export abstract class HalBase {
 
     protected readonly _embedded: Readonly<Record<string, Object>> = {};
 
+    /**
+     * The URI of `self` link.
+     */
     get self(): string {
         return this._links[self]?.href;
     }
 
+    /**
+     * @param obj the object used to assign the properties
+     */
     constructor(obj: Object) {
         Object.assign(this, obj);
     }
 
+    /**
+     * Create a new resource in the collection identified by `self` link.
+     * It makes a `POST` call to the URI in `self` link and returns an
+     * observable for the call. The observable normally emits an accessor
+     * for the newly created resource or `undefined` if `Location` header
+     * was not returned by the call.
+     *
+     * @param obj the payload for the `POST` method call
+     * @returns an observable of the resource's accessor
+     */
     create(obj: any): Observable<Accessor | undefined> {
         return this.withSelf(
             self => this._client.post(self, this.sanitize(obj), {
@@ -40,6 +59,11 @@ export abstract class HalBase {
         );
     }
 
+    /**
+     * Delete the resource identified by `self` link.
+     *
+     * @returns an observable that emits next signal on successful delete
+     */
     delete(): Observable<void> {
         return this.withSelf(
             self => this._client.delete(self).pipe(
