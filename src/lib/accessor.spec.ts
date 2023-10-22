@@ -26,6 +26,75 @@ describe('Accessor', () => {
         expect(accessor.self).toBe('/api/root');
     });
 
+    describe('#canCreate', () => {
+        it('is true when no methods array', () => {
+            const noMethods = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: { href: '/api/v1/items' }
+                }
+            });
+
+            expect(noMethods.canCreate).toBe(true);
+        });
+
+        it('is true when methods is not an array', () => {
+            const notArray = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: 'GET'
+                    }
+                }
+            });
+
+            expect(notArray.canCreate).toBe(true);
+        });
+
+        it('is false when no POST in methods array', () => {
+            const noPost = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: ['GET']
+                    }
+                }
+            });
+
+            expect(noPost.canCreate).toBe(false);
+        });
+
+        it('is true when POST is in methods array', () => {
+            const withPost = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: ['GET', 'POST', 'PUT']
+                    }
+                }
+            });
+
+            expect(withPost.canCreate).toBe(true);
+        });
+
+        it('is true when POST matches case insensitively', () => {
+            const withPost = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: [null, 'PoSt']
+                    }
+                }
+            });
+
+            expect(withPost.canCreate).toBe(true);
+        });
+    });
+
     describe('#create()', () => {
         const item = new TestResource({ version: '3.5.7' });
 

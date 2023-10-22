@@ -11,6 +11,8 @@ interface Link {
     href: string;
 
     templated?: boolean;
+
+    methods?: any;
 }
 
 /**
@@ -28,6 +30,16 @@ export abstract class HalBase {
      */
     get self(): string {
         return this._links[self]?.href;
+    }
+
+    get canCreate(): boolean {
+        const methods = this._links[self]?.methods;
+
+        if (!Array.isArray(methods))
+            return true;
+
+        return !!methods.find(method => typeof method === 'string' &&
+            method.toUpperCase() === 'POST');
     }
 
     /**
