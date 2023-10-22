@@ -32,6 +32,10 @@ export abstract class HalBase {
         return this._links[self]?.href;
     }
 
+    /**
+     * This property is true when either `methods` array does not exist
+     * in the `self` link or the array exists and contains `POST` method.
+     */
     get canCreate(): boolean {
         const methods = this._links[self]?.methods;
 
