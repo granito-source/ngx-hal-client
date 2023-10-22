@@ -33,17 +33,27 @@ export abstract class HalBase {
     }
 
     /**
-     * This property is true when either `methods` array does not exist
+     * This property is `true` when either `methods` array does not exist
      * in the `self` link or the array exists and contains `POST` string.
+     * It is `false` otherwise.
      */
     get canCreate(): boolean {
         return this.can('POST');
     }
 
     /**
-     * This property is true when either `methods` array does not exist
+     * This property is `true` when either `methods` array does not exist
+     * in the `self` link or the array exists and contains `GET` string.
+     * It is `false` otherwise.
+     */
+    get canRead(): boolean {
+        return this.can('GET');
+    }
+
+    /**
+     * This property is `true` when either `methods` array does not exist
      * in the `self` link or the array exists and contains `DELETE`
-     * string.
+     * string. It is `false` otherwise.
      */
     get canDelete(): boolean {
         return this.can('DELETE');

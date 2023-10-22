@@ -287,6 +287,75 @@ describe('Accessor', () => {
         });
     });
 
+    describe('#canRead', () => {
+        it('is true when no methods array', () => {
+            const noMethods = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: { href: '/api/v1/items' }
+                }
+            });
+
+            expect(noMethods.canRead).toBe(true);
+        });
+
+        it('is true when methods is not an array', () => {
+            const notArray = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: 'POST'
+                    }
+                }
+            });
+
+            expect(notArray.canRead).toBe(true);
+        });
+
+        it('is false when no GET in methods array', () => {
+            const noPost = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: ['POST']
+                    }
+                }
+            });
+
+            expect(noPost.canRead).toBe(false);
+        });
+
+        it('is true when GET is in methods array', () => {
+            const withPost = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: ['PUT', 'GET', 'DELETE']
+                    }
+                }
+            });
+
+            expect(withPost.canRead).toBe(true);
+        });
+
+        it('is true when GET matches case insensitively', () => {
+            const withPost = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: [null, 'GeT']
+                    }
+                }
+            });
+
+            expect(withPost.canRead).toBe(true);
+        });
+    });
+
     describe('#read()', () => {
         it('emits resource at self link', () => {
             let next!: TestResource;
@@ -469,7 +538,7 @@ describe('Accessor', () => {
             expect(notArray.canDelete).toBe(true);
         });
 
-        it('is false when no POST in methods array', () => {
+        it('is false when no DELETE in methods array', () => {
             const noPost = new Accessor({
                 _client: spectator.httpClient,
                 _links: {
