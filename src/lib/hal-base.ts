@@ -34,16 +34,19 @@ export abstract class HalBase {
 
     /**
      * This property is true when either `methods` array does not exist
-     * in the `self` link or the array exists and contains `POST` method.
+     * in the `self` link or the array exists and contains `POST` string.
      */
     get canCreate(): boolean {
-        const methods = this._links[self]?.methods;
+        return this.can('POST');
+    }
 
-        if (!Array.isArray(methods))
-            return true;
-
-        return !!methods.find(method => typeof method === 'string' &&
-            method.toUpperCase() === 'POST');
+    /**
+     * This property is true when either `methods` array does not exist
+     * in the `self` link or the array exists and contains `DELETE`
+     * string.
+     */
+    get canDelete(): boolean {
+        return this.can('DELETE');
     }
 
     /**
@@ -137,5 +140,15 @@ export abstract class HalBase {
             path: err.url,
             ...err.error
         }));
+    }
+
+    private can(method: string): boolean {
+        const methods = this._links[self]?.methods;
+
+        if (!Array.isArray(methods))
+            return true;
+
+        return !!methods.find(m => typeof m === 'string' &&
+            m.toUpperCase() === method);
     }
 }

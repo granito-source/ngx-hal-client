@@ -443,6 +443,75 @@ describe('Accessor', () => {
         });
     });
 
+    describe('#canDelete', () => {
+        it('is true when no methods array', () => {
+            const noMethods = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: { href: '/api/v1/items' }
+                }
+            });
+
+            expect(noMethods.canDelete).toBe(true);
+        });
+
+        it('is true when methods is not an array', () => {
+            const notArray = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: 'GET'
+                    }
+                }
+            });
+
+            expect(notArray.canDelete).toBe(true);
+        });
+
+        it('is false when no POST in methods array', () => {
+            const noPost = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: ['GET']
+                    }
+                }
+            });
+
+            expect(noPost.canDelete).toBe(false);
+        });
+
+        it('is true when DELETE is in methods array', () => {
+            const withPost = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: ['GET', 'DELETE', 'PUT']
+                    }
+                }
+            });
+
+            expect(withPost.canDelete).toBe(true);
+        });
+
+        it('is true when DELETE matches case insensitively', () => {
+            const withPost = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: [null, 'DeLeTe']
+                    }
+                }
+            });
+
+            expect(withPost.canDelete).toBe(true);
+        });
+    });
+
     describe('#delete()', () => {
         it('deletes resource at self link', () => {
             let next = false;
