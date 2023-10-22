@@ -4,7 +4,10 @@ import * as URI from 'uri-template';
 import { Accessor } from './accessor';
 import { HalBase } from './hal-base';
 
-type Params = Record<string, string | number | boolean>;
+/**
+ * This type represent parameters for templated links.
+ */
+export type Params = Record<string, string | number | boolean>;
 
 /**
  * This class repesents an in-memory instance of a HAL resource.

@@ -1,8 +1,18 @@
 {
   "$schema": "https://typedoc.org/schema.json",
+  "name": "Angular HAL Client",
+  "includeVersion": true,
   "entryPoints": [
     "./src/public-api.ts"
   ],
+  "excludeExternals": false,
+  "excludeInternal": true,
+  "excludePrivate": true,
+  "excludeProtected": true,
   "skipErrorChecking": true,
+  "visibilityFilters": {
+    "inherited": true,
+    "external": true
+  },
   "out": "build/typedoc"
 }

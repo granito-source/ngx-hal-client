@@ -1,15 +1,13 @@
-# HAL Client
-
 [![Latest Version](https://img.shields.io/npm/v/%40granito%2Fngx-hal-client.svg)](https://npm.im/@granito/ngx-hal-client)
 [![Build](https://github.com/granito-source/ngx-hal-client/actions/workflows/npm-build.yaml/badge.svg)](https://github.com/granito-source/ngx-hal-client/actions/workflows/npm-build.yaml)
 
 This is a
-[Hypertext Application Language (HAL)](https://en.wikipedia.org/wiki/Hypertext_Application_Language)
-client to be used in [Angular](https://angular.io/) projects.
+[Hypertext Application Language](https://en.wikipedia.org/wiki/Hypertext_Application_Language)
+(HAL) client to be used in [Angular](https://angular.io/) projects.
 
 ## Installation
 
-Using [npm](https://npmjs.org/)
+Using [npm](https://npmjs.org/):
 
 ```shell
 $ npm install @granito/ngx-hal-client --save

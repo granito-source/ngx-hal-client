@@ -6,6 +6,9 @@ import { Resource } from './resource';
  * This class represents an in-memory collection of resources.
  */
 export class Collection<T extends Resource> extends Resource {
+    /**
+     * The elements of the collection.
+     */
     readonly values: T[];
 
     /**
@@ -29,7 +32,7 @@ export class Collection<T extends Resource> extends Resource {
     }
 
     /**
-     * Refresh the the resource collection. In other words, read
+     * Refresh the resource collection. In other words, read
      * the resource collection identified by `self` link.
      *
      * @returns an observable of the refreshed resource collection instance
