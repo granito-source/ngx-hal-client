@@ -26,6 +26,7 @@ describe('Collection', () => {
                 self: { href: '/api/test' },
                 find: {
                     href: '/api/search{?q}',
+                    methods: ['GET'],
                     templated: true
                 },
                 notmpl: {
@@ -126,6 +127,14 @@ describe('Collection', () => {
 
             expect(accessor).toBeDefined();
             expect(accessor?.self).toBe('/api/search{?q}');
+        });
+
+        it('preserves methods array when present', () => {
+            const accessor = collection.follow('find');
+
+            expect(accessor?.canCreate).toBe(false);
+            expect(accessor?.canRead).toBe(true);
+            expect(accessor?.canDelete).toBe(false);
         });
     });
 
