@@ -26,6 +26,7 @@ describe('Resource', () => {
                 self: { href: '/api/test' },
                 find: {
                     href: '/api/search{?q}',
+                    methods: ['GET', 'DELETE'],
                     templated: true
                 },
                 notmpl: {
@@ -91,6 +92,14 @@ describe('Resource', () => {
 
             expect(accessor).toBeDefined();
             expect(accessor?.self).toBe('/api/search{?q}');
+        });
+
+        it('preserves methods array when present', () => {
+            const accessor = resource.follow('find');
+
+            expect(accessor?.canCreate).toBe(false);
+            expect(accessor?.canRead).toBe(true);
+            expect(accessor?.canDelete).toBe(true);
         });
     });
 

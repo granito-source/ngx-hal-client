@@ -31,7 +31,7 @@ export class Resource extends HalBase {
 
         return !uri ? undefined :
             this.accessor(!link.templated ? uri :
-                URI.parse(uri).expand(params));
+                URI.parse(uri).expand(params), link.methods);
     }
 
     /**

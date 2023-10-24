@@ -12,7 +12,7 @@ interface Link {
 
     templated?: boolean;
 
-    methods?: any;
+    methods?: string[];
 }
 
 /**
@@ -113,8 +113,15 @@ export abstract class HalBase {
         return func(self);
     }
 
-    protected accessor(href: string): Accessor {
-        return this.instanceOf(Accessor, { _links: { self: { href } } });
+    protected accessor(href: string, methods?: string[]): Accessor {
+        return this.instanceOf(Accessor, {
+            _links: {
+                self: {
+                    href,
+                    methods
+                }
+            }
+        });
     }
 
     protected instanceOf<T>(type: Type<T>, obj: Object): T {
