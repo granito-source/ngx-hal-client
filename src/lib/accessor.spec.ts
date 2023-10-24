@@ -26,6 +26,75 @@ describe('Accessor', () => {
         expect(accessor.self).toBe('/api/root');
     });
 
+    describe('#canCreate', () => {
+        it('is true when no methods array', () => {
+            const noMethods = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: { href: '/api/v1/items' }
+                }
+            });
+
+            expect(noMethods.canCreate).toBe(true);
+        });
+
+        it('is true when methods is not an array', () => {
+            const notArray = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: 'GET'
+                    }
+                }
+            });
+
+            expect(notArray.canCreate).toBe(true);
+        });
+
+        it('is false when no POST in methods array', () => {
+            const noPost = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: ['GET']
+                    }
+                }
+            });
+
+            expect(noPost.canCreate).toBe(false);
+        });
+
+        it('is true when POST is in methods array', () => {
+            const withPost = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: ['GET', 'POST', 'PUT']
+                    }
+                }
+            });
+
+            expect(withPost.canCreate).toBe(true);
+        });
+
+        it('is true when POST matches case insensitively', () => {
+            const withPost = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: [null, 'PoSt']
+                    }
+                }
+            });
+
+            expect(withPost.canCreate).toBe(true);
+        });
+    });
+
     describe('#create()', () => {
         const item = new TestResource({ version: '3.5.7' });
 
@@ -218,6 +287,75 @@ describe('Accessor', () => {
         });
     });
 
+    describe('#canRead', () => {
+        it('is true when no methods array', () => {
+            const noMethods = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: { href: '/api/v1/items' }
+                }
+            });
+
+            expect(noMethods.canRead).toBe(true);
+        });
+
+        it('is true when methods is not an array', () => {
+            const notArray = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: 'POST'
+                    }
+                }
+            });
+
+            expect(notArray.canRead).toBe(true);
+        });
+
+        it('is false when no GET in methods array', () => {
+            const noPost = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: ['POST']
+                    }
+                }
+            });
+
+            expect(noPost.canRead).toBe(false);
+        });
+
+        it('is true when GET is in methods array', () => {
+            const withPost = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: ['PUT', 'GET', 'DELETE']
+                    }
+                }
+            });
+
+            expect(withPost.canRead).toBe(true);
+        });
+
+        it('is true when GET matches case insensitively', () => {
+            const withPost = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: [null, 'GeT']
+                    }
+                }
+            });
+
+            expect(withPost.canRead).toBe(true);
+        });
+    });
+
     describe('#read()', () => {
         it('emits resource at self link', () => {
             let next!: TestResource;
@@ -371,6 +509,75 @@ describe('Accessor', () => {
             expect(error.error).toBe('Unauthorized');
             expect(error.message).toBe('not logged in');
             expect(error['exception']).toBe('NotAuthenticatedException');
+        });
+    });
+
+    describe('#canDelete', () => {
+        it('is true when no methods array', () => {
+            const noMethods = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: { href: '/api/v1/items' }
+                }
+            });
+
+            expect(noMethods.canDelete).toBe(true);
+        });
+
+        it('is true when methods is not an array', () => {
+            const notArray = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: 'GET'
+                    }
+                }
+            });
+
+            expect(notArray.canDelete).toBe(true);
+        });
+
+        it('is false when no DELETE in methods array', () => {
+            const noPost = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: ['GET']
+                    }
+                }
+            });
+
+            expect(noPost.canDelete).toBe(false);
+        });
+
+        it('is true when DELETE is in methods array', () => {
+            const withPost = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: ['GET', 'DELETE', 'PUT']
+                    }
+                }
+            });
+
+            expect(withPost.canDelete).toBe(true);
+        });
+
+        it('is true when DELETE matches case insensitively', () => {
+            const withPost = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: [null, 'DeLeTe']
+                    }
+                }
+            });
+
+            expect(withPost.canDelete).toBe(true);
         });
     });
 

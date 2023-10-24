@@ -11,6 +11,8 @@ interface Link {
     href: string;
 
     templated?: boolean;
+
+    methods?: string[];
 }
 
 /**
@@ -28,6 +30,33 @@ export abstract class HalBase {
      */
     get self(): string {
         return this._links[self]?.href;
+    }
+
+    /**
+     * This property is `true` when either `methods` array does not exist
+     * in the `self` link or the array exists and contains `POST` string.
+     * It is `false` otherwise.
+     */
+    get canCreate(): boolean {
+        return this.can('POST');
+    }
+
+    /**
+     * This property is `true` when either `methods` array does not exist
+     * in the `self` link or the array exists and contains `GET` string.
+     * It is `false` otherwise.
+     */
+    get canRead(): boolean {
+        return this.can('GET');
+    }
+
+    /**
+     * This property is `true` when either `methods` array does not exist
+     * in the `self` link or the array exists and contains `DELETE`
+     * string. It is `false` otherwise.
+     */
+    get canDelete(): boolean {
+        return this.can('DELETE');
     }
 
     /**
@@ -84,8 +113,15 @@ export abstract class HalBase {
         return func(self);
     }
 
-    protected accessor(href: string): Accessor {
-        return this.instanceOf(Accessor, { _links: { self: { href } } });
+    protected accessor(href: string, methods?: string[]): Accessor {
+        return this.instanceOf(Accessor, {
+            _links: {
+                self: {
+                    href,
+                    methods
+                }
+            }
+        });
     }
 
     protected instanceOf<T>(type: Type<T>, obj: Object): T {
@@ -121,5 +157,15 @@ export abstract class HalBase {
             path: err.url,
             ...err.error
         }));
+    }
+
+    protected can(method: string): boolean {
+        const methods = this._links[self]?.methods;
+
+        if (!Array.isArray(methods))
+            return true;
+
+        return !!methods.find(m => typeof m === 'string' &&
+            m.toUpperCase() === method);
     }
 }

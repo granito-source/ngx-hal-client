@@ -13,6 +13,10 @@ export type Params = Record<string, string | number | boolean>;
  * This class repesents an in-memory instance of a HAL resource.
  */
 export class Resource extends HalBase {
+    get canUpdate(): boolean {
+        return this.can('PUT');
+    }
+
     /**
      * Follow the relation link. Returns an accessor for the resource
      * or `undefined` if no such relation exists.
@@ -31,7 +35,7 @@ export class Resource extends HalBase {
 
         return !uri ? undefined :
             this.accessor(!link.templated ? uri :
-                URI.parse(uri).expand(params));
+                URI.parse(uri).expand(params), link.methods);
     }
 
     /**

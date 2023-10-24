@@ -26,6 +26,7 @@ describe('Resource', () => {
                 self: { href: '/api/test' },
                 find: {
                     href: '/api/search{?q}',
+                    methods: ['GET', 'DELETE'],
                     templated: true
                 },
                 notmpl: {
@@ -91,6 +92,83 @@ describe('Resource', () => {
 
             expect(accessor).toBeDefined();
             expect(accessor?.self).toBe('/api/search{?q}');
+        });
+
+        it('preserves methods array when present', () => {
+            const accessor = resource.follow('find');
+
+            expect(accessor?.canCreate).toBe(false);
+            expect(accessor?.canRead).toBe(true);
+            expect(accessor?.canDelete).toBe(true);
+        });
+    });
+
+    describe('#canCreate', () => {
+        it('is true when no methods array', () => {
+            const noMethods = new Resource({
+                _client: spectator.httpClient,
+                _links: {
+                    self: { href: '/api/v1/items' }
+                }
+            });
+
+            expect(noMethods.canCreate).toBe(true);
+        });
+
+        it('is true when methods is not an array', () => {
+            const notArray = new Resource({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: 'GET'
+                    }
+                }
+            });
+
+            expect(notArray.canCreate).toBe(true);
+        });
+
+        it('is false when no POST in methods array', () => {
+            const noPost = new Resource({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: ['GET']
+                    }
+                }
+            });
+
+            expect(noPost.canCreate).toBe(false);
+        });
+
+        it('is true when POST is in methods array', () => {
+            const withPost = new Resource({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: ['GET', 'POST', 'PUT']
+                    }
+                }
+            });
+
+            expect(withPost.canCreate).toBe(true);
+        });
+
+        it('is true when POST matches case insensitively', () => {
+            const withPost = new Resource({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: [null, 'PoSt']
+                    }
+                }
+            });
+
+            expect(withPost.canCreate).toBe(true);
         });
     });
 
@@ -320,6 +398,75 @@ describe('Resource', () => {
         });
     });
 
+    describe('#canRead', () => {
+        it('is true when no methods array', () => {
+            const noMethods = new Resource({
+                _client: spectator.httpClient,
+                _links: {
+                    self: { href: '/api/v1/items' }
+                }
+            });
+
+            expect(noMethods.canRead).toBe(true);
+        });
+
+        it('is true when methods is not an array', () => {
+            const notArray = new Resource({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: 'POST'
+                    }
+                }
+            });
+
+            expect(notArray.canRead).toBe(true);
+        });
+
+        it('is false when no GET in methods array', () => {
+            const noPost = new Resource({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: ['POST']
+                    }
+                }
+            });
+
+            expect(noPost.canRead).toBe(false);
+        });
+
+        it('is true when GET is in methods array', () => {
+            const withPost = new Resource({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: ['PUT', 'GET', 'DELETE']
+                    }
+                }
+            });
+
+            expect(withPost.canRead).toBe(true);
+        });
+
+        it('is true when GET matches case insensitively', () => {
+            const withPost = new Resource({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: [null, 'GeT']
+                    }
+                }
+            });
+
+            expect(withPost.canRead).toBe(true);
+        });
+    });
+
     describe('#read()', () => {
         it('emits resource at self link when it exists', () => {
             let next: TestResource | undefined;
@@ -422,6 +569,75 @@ describe('Resource', () => {
             expect(error.error).toBe('Unauthorized');
             expect(error.message).toBe('not logged in');
             expect(error['exception']).toBe('NotAuthenticatedException');
+        });
+    });
+
+    describe('#canUpdate', () => {
+        it('is true when no methods array', () => {
+            const noMethods = new Resource({
+                _client: spectator.httpClient,
+                _links: {
+                    self: { href: '/api/v1/items/8' }
+                }
+            });
+
+            expect(noMethods.canUpdate).toBe(true);
+        });
+
+        it('is true when methods is not an array', () => {
+            const notArray = new Resource({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items/8',
+                        methods: 'PUT'
+                    }
+                }
+            });
+
+            expect(notArray.canUpdate).toBe(true);
+        });
+
+        it('is false when no PUT in methods array', () => {
+            const noPost = new Resource({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items/8',
+                        methods: ['GET']
+                    }
+                }
+            });
+
+            expect(noPost.canUpdate).toBe(false);
+        });
+
+        it('is true when PUT is in methods array', () => {
+            const withPost = new Resource({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items/8',
+                        methods: ['GET', 'PUT', 'DELETE']
+                    }
+                }
+            });
+
+            expect(withPost.canUpdate).toBe(true);
+        });
+
+        it('is true when PUT matches case insensitively', () => {
+            const withPost = new Resource({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items/8',
+                        methods: [null, 'pUt']
+                    }
+                }
+            });
+
+            expect(withPost.canUpdate).toBe(true);
         });
     });
 
@@ -531,6 +747,75 @@ describe('Resource', () => {
             expect(error.error).toBe('Unauthorized');
             expect(error.message).toBe('not logged in');
             expect(error['exception']).toBe('NotAuthenticatedException');
+        });
+    });
+
+    describe('#canDelete', () => {
+        it('is true when no methods array', () => {
+            const noMethods = new Resource({
+                _client: spectator.httpClient,
+                _links: {
+                    self: { href: '/api/v1/items' }
+                }
+            });
+
+            expect(noMethods.canDelete).toBe(true);
+        });
+
+        it('is true when methods is not an array', () => {
+            const notArray = new Resource({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: 'GET'
+                    }
+                }
+            });
+
+            expect(notArray.canDelete).toBe(true);
+        });
+
+        it('is false when no DELETE in methods array', () => {
+            const noPost = new Resource({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: ['GET']
+                    }
+                }
+            });
+
+            expect(noPost.canDelete).toBe(false);
+        });
+
+        it('is true when DELETE is in methods array', () => {
+            const withPost = new Resource({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: ['GET', 'DELETE', 'PUT']
+                    }
+                }
+            });
+
+            expect(withPost.canDelete).toBe(true);
+        });
+
+        it('is true when DELETE matches case insensitively', () => {
+            const withPost = new Resource({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: [null, 'DeLeTe']
+                    }
+                }
+            });
+
+            expect(withPost.canDelete).toBe(true);
         });
     });
 
