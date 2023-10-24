@@ -159,7 +159,7 @@ export abstract class HalBase {
         }));
     }
 
-    private can(method: string): boolean {
+    protected can(method: string): boolean {
         const methods = this._links[self]?.methods;
 
         if (!Array.isArray(methods))

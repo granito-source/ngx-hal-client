@@ -572,6 +572,75 @@ describe('Resource', () => {
         });
     });
 
+    describe('#canUpdate', () => {
+        it('is true when no methods array', () => {
+            const noMethods = new Resource({
+                _client: spectator.httpClient,
+                _links: {
+                    self: { href: '/api/v1/items/8' }
+                }
+            });
+
+            expect(noMethods.canUpdate).toBe(true);
+        });
+
+        it('is true when methods is not an array', () => {
+            const notArray = new Resource({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items/8',
+                        methods: 'PUT'
+                    }
+                }
+            });
+
+            expect(notArray.canUpdate).toBe(true);
+        });
+
+        it('is false when no PUT in methods array', () => {
+            const noPost = new Resource({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items/8',
+                        methods: ['GET']
+                    }
+                }
+            });
+
+            expect(noPost.canUpdate).toBe(false);
+        });
+
+        it('is true when PUT is in methods array', () => {
+            const withPost = new Resource({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items/8',
+                        methods: ['GET', 'PUT', 'DELETE']
+                    }
+                }
+            });
+
+            expect(withPost.canUpdate).toBe(true);
+        });
+
+        it('is true when PUT matches case insensitively', () => {
+            const withPost = new Resource({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items/8',
+                        methods: [null, 'pUt']
+                    }
+                }
+            });
+
+            expect(withPost.canUpdate).toBe(true);
+        });
+    });
+
     describe('#update()', () => {
         it('puts payload to self when it exists', () => {
             let next: Accessor | undefined;
