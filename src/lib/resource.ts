@@ -13,6 +13,11 @@ export type Params = Record<string, string | number | boolean>;
  * This class repesents an in-memory instance of a HAL resource.
  */
 export class Resource extends HalBase {
+    /**
+     * This property is `true` when either `methods` array does not exist
+     * in the `self` link or the array exists and contains `PUT` string.
+     * It is `false` otherwise.
+     */
     get canUpdate(): boolean {
         return this.can('PUT');
     }
