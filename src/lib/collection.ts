@@ -7,7 +7,13 @@ import { Resource } from './resource';
  */
 export class Collection<T extends Resource> extends Resource {
     /**
-     * The elements of the collection.
+     * Zero-based offset of the first element of the `values` array in
+     * the collection.
+     */
+    readonly start: number;
+
+    /**
+     * A page of values of the collection starting with `start` offset.
      */
     readonly values: T[];
 
@@ -15,8 +21,10 @@ export class Collection<T extends Resource> extends Resource {
      * @param type the element resource type
      * @param obj the object used to assign the properties
      */
-    constructor(private readonly type: Type<T>, obj: Object) {
+    constructor(private readonly type: Type<T>, obj: any) {
         super(obj);
+
+        this.start = obj.start > 0 ? Math.trunc(obj.start) : 0;
 
         for (const rel in this._embedded) {
             const values = this._embedded[rel];

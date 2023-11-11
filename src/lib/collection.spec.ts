@@ -74,6 +74,57 @@ describe('Collection', () => {
         expect(collection.self).toBe('/api/test');
     });
 
+    describe('#start', () => {
+        it('is 0 by default', () => {
+            expect(collection.start).toBe(0);
+        });
+
+        it('is set by constructor if positive', () => {
+            const paged = new Collection(TestResource, {
+                _client: spectator.httpClient,
+                _links: {
+                    self: { href: '/api/test' }
+                },
+                _embedded: {
+                    values: []
+                },
+                start: 42
+            });
+
+            expect(paged.start).toBe(42);
+        });
+
+        it('is set to 0 if negative', () => {
+            const paged = new Collection(TestResource, {
+                _client: spectator.httpClient,
+                _links: {
+                    self: { href: '/api/test' }
+                },
+                _embedded: {
+                    values: []
+                },
+                start: -1
+            });
+
+            expect(paged.start).toBe(0);
+        });
+
+        it('is truncated if fractional', () => {
+            const paged = new Collection(TestResource, {
+                _client: spectator.httpClient,
+                _links: {
+                    self: { href: '/api/test' }
+                },
+                _embedded: {
+                    values: []
+                },
+                start: 42.9
+            });
+
+            expect(paged.start).toBe(42);
+        });
+    });
+
     describe('#values', () => {
         it('uses first embedded array', () => {
             const values = collection.values;
