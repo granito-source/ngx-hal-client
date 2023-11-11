@@ -52,12 +52,10 @@ export class Resource extends HalBase {
     read(): Observable<this> {
         const type = this.constructor as Type<this>;
 
-        return this.withSelf(
-            self => this._client.get(self).pipe(
-                map(obj => this.instanceOf(type, obj)),
-                catchError(this.handleError)
-            )
-        );
+        return this.withSelf(self => this._client.get(self).pipe(
+            map(obj => this.instanceOf(type, obj)),
+            catchError(this.handleError)
+        ));
     }
 
     /**
@@ -67,12 +65,10 @@ export class Resource extends HalBase {
      * @returns an observable of resource accessor
      */
     update(): Observable<Accessor> {
-        return this.withSelf(
-            self => this._client.put(self, this.sanitize(this)).pipe(
-                map(() => this.accessor(self)),
-                catchError(this.handleError)
-            )
-        );
+        return this.withSelf(self => this._client.put(self, this.sanitize(this)).pipe(
+            map(() => this.accessor(self)),
+            catchError(this.handleError)
+        ));
     }
 
     /**
