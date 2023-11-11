@@ -1,6 +1,9 @@
 import { Type } from '@angular/core';
 import { Observable, catchError, map } from 'rxjs';
 import { Resource } from './resource';
+import { Accessor } from './accessor';
+
+const next = 'next';
 
 /**
  * This class represents an in-memory collection of resources.
@@ -39,6 +42,12 @@ export class Collection<T extends Resource> extends Resource {
         this.values = [];
     }
 
+    next(): Accessor | undefined {
+        const accessor = this.follow(next);
+
+        return !!accessor && accessor.canRead ? accessor : undefined;
+    }
+
     /**
      * Refresh the resource collection. In other words, read
      * the resource collection identified by `self` link.
@@ -46,12 +55,12 @@ export class Collection<T extends Resource> extends Resource {
      * @returns an observable of the refreshed resource collection instance
      */
     override read(): Observable<this> {
-        return this._client.get(this.self).pipe(
+        return this.withSelf(self => this._client.get(self).pipe(
             map(obj => new Collection(this.type, {
                 ...obj,
                  _client: this._client
             }) as this),
             catchError(this.handleError)
-        );
+        ));
     }
 }

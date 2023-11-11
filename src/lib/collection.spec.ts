@@ -15,8 +15,9 @@ describe('Collection', () => {
     });
     let spectator: SpectatorHttp<HalClientService>;
     let collection: Collection<TestResource>;
-    let noSelf: TestResource;
-    let noHref: TestResource;
+    let noSelf: Collection<TestResource>;
+    let noHref: Collection<TestResource>;
+    let paged: Collection<TestResource>;
 
     beforeEach(() => {
         spectator = createService();
@@ -45,7 +46,7 @@ describe('Collection', () => {
                 empty: []
             }
         });
-        noSelf = new TestResource({
+        noSelf = new Collection(TestResource, {
             _client: spectator.httpClient,
             _links: {},
             _embedded: {
@@ -55,7 +56,7 @@ describe('Collection', () => {
                 ]
             }
         });
-        noHref = new TestResource({
+        noHref = new Collection(TestResource, {
             _client: spectator.httpClient,
             _links: {
                 self: {}
@@ -66,6 +67,21 @@ describe('Collection', () => {
                     { version: '3.0.0' }
                 ]
             }
+        });
+        paged = new Collection(TestResource, {
+            _client: spectator.httpClient,
+            _links: {
+                self: { href: '/api/test' },
+                next: { href: '/api/test?start=44&limit2' },
+                prev: { href: '/api/test?start=40&limit2' }
+            },
+            _embedded: {
+                array: [
+                    { version: '2.0.0' },
+                    { version: '3.0.0' }
+                ]
+            },
+            start: 42
         });
     });
 
@@ -80,22 +96,11 @@ describe('Collection', () => {
         });
 
         it('is set by constructor if positive', () => {
-            const paged = new Collection(TestResource, {
-                _client: spectator.httpClient,
-                _links: {
-                    self: { href: '/api/test' }
-                },
-                _embedded: {
-                    values: []
-                },
-                start: 42
-            });
-
             expect(paged.start).toBe(42);
         });
 
         it('is set to 0 if negative', () => {
-            const paged = new Collection(TestResource, {
+            const negative = new Collection(TestResource, {
                 _client: spectator.httpClient,
                 _links: {
                     self: { href: '/api/test' }
@@ -106,11 +111,11 @@ describe('Collection', () => {
                 start: -1
             });
 
-            expect(paged.start).toBe(0);
+            expect(negative.start).toBe(0);
         });
 
-        it('is truncated if fractional', () => {
-            const paged = new Collection(TestResource, {
+        it('is truncated if not whole number', () => {
+            const fraction = new Collection(TestResource, {
                 _client: spectator.httpClient,
                 _links: {
                     self: { href: '/api/test' }
@@ -121,7 +126,7 @@ describe('Collection', () => {
                 start: 42.9
             });
 
-            expect(paged.start).toBe(42);
+            expect(fraction.start).toBe(42);
         });
     });
 
@@ -186,6 +191,57 @@ describe('Collection', () => {
             expect(accessor?.canCreate).toBe(false);
             expect(accessor?.canRead).toBe(true);
             expect(accessor?.canDelete).toBe(false);
+        });
+    });
+
+    describe('#next()', () => {
+        it('returns undefined when next rel does not exist', () => {
+            expect(collection.next()).toBeUndefined();
+        });
+
+        it('returns undefined when next rel does not have href', () => {
+            const broken = new Collection(TestResource, {
+                _client: spectator.httpClient,
+                _links: {
+                    self: { href: '/api/test' },
+                    next: {}
+                },
+                _embedded: {
+                    array: []
+                },
+                start: 0
+            });
+
+            expect(broken.next()).toBeUndefined();
+        });
+
+        it('returns undefined when canRead() is false', () => {
+            const broken = new Collection(TestResource, {
+                _client: spectator.httpClient,
+                _links: {
+                    self: { href: '/api/test' },
+                    next: {
+                        href: '/api/test?start=44&limit2',
+                        methods: ['DELETE']
+                    }
+                },
+                _embedded: {
+                    array: [
+                        { version: '2.0.0' },
+                        { version: '3.0.0' }
+                    ]
+                },
+                start: 42
+            });
+
+            expect(broken.next()).toBeUndefined();
+        });
+
+        it('returns accessor with link when next rel exists', () => {
+            const accessor = paged.next();
+
+            expect(accessor).toBeDefined();
+            expect(accessor?.self).toBe('/api/test?start=44&limit2');
         });
     });
 
