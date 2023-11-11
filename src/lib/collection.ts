@@ -5,6 +5,8 @@ import { Accessor } from './accessor';
 
 const next = 'next';
 
+const prev = 'prev';
+
 /**
  * This class represents an in-memory collection of resources.
  */
@@ -42,8 +44,24 @@ export class Collection<T extends Resource> extends Resource {
         this.values = [];
     }
 
+    /**
+     * Follow `next` link if it exists and can be read.
+     *
+     * @returns the accessor for the link or `undefined`
+     */
     next(): Accessor | undefined {
         const accessor = this.follow(next);
+
+        return !!accessor && accessor.canRead ? accessor : undefined;
+    }
+
+    /**
+     * Follow `prev` link if it exists and can be read.
+     *
+     * @returns the accessor for the link or `undefined`
+     */
+    previous(): Accessor | undefined {
+        const accessor = this.follow(prev);
 
         return !!accessor && accessor.canRead ? accessor : undefined;
     }

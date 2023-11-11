@@ -215,6 +215,13 @@ describe('Collection', () => {
             expect(broken.next()).toBeUndefined();
         });
 
+        it('returns accessor with link when next rel exists', () => {
+            const accessor = paged.next();
+
+            expect(accessor).toBeDefined();
+            expect(accessor?.self).toBe('/api/test?start=44&limit2');
+        });
+
         it('returns undefined when canRead() is false', () => {
             const broken = new Collection(TestResource, {
                 _client: spectator.httpClient,
@@ -236,12 +243,56 @@ describe('Collection', () => {
 
             expect(broken.next()).toBeUndefined();
         });
+    });
 
-        it('returns accessor with link when next rel exists', () => {
-            const accessor = paged.next();
+    describe('#previous()', () => {
+        it('returns undefined when prev rel does not exist', () => {
+            expect(collection.previous()).toBeUndefined();
+        });
+
+        it('returns undefined when prev rel does not have href', () => {
+            const broken = new Collection(TestResource, {
+                _client: spectator.httpClient,
+                _links: {
+                    self: { href: '/api/test' },
+                    prev: {}
+                },
+                _embedded: {
+                    array: []
+                },
+                start: 0
+            });
+
+            expect(broken.previous()).toBeUndefined();
+        });
+
+        it('returns accessor with link when prev rel exists', () => {
+            const accessor = paged.previous();
 
             expect(accessor).toBeDefined();
-            expect(accessor?.self).toBe('/api/test?start=44&limit2');
+            expect(accessor?.self).toBe('/api/test?start=40&limit2');
+        });
+
+        it('returns undefined when canRead() is false', () => {
+            const broken = new Collection(TestResource, {
+                _client: spectator.httpClient,
+                _links: {
+                    self: { href: '/api/test' },
+                    prev: {
+                        href: '/api/test?start=40&limit2',
+                        methods: ['DELETE']
+                    }
+                },
+                _embedded: {
+                    array: [
+                        { version: '2.0.0' },
+                        { version: '3.0.0' }
+                    ]
+                },
+                start: 42
+            });
+
+            expect(broken.previous()).toBeUndefined();
         });
     });
 
