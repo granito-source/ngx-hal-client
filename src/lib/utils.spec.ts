@@ -1,7 +1,7 @@
-import { Collection } from './collection';
-import { Resource, objectFrom } from './internal';
+import { cold } from 'jest-marbles';
+import { Accessor, Collection, Resource, follow, objectFrom } from './internal';
 
-describe('objectFrom', () => {
+describe('objectFrom()', () => {
     it('returns undefined when parameter is undefined', () => {
         expect(objectFrom(undefined)).toBeUndefined();
     });
@@ -95,5 +95,41 @@ describe('objectFrom', () => {
                 text: 'Two'
             }
         ]);
+    });
+});
+
+describe('follow()', () => {
+    it('maps resource to undefined when no link', () => {
+        const observable = cold('--r-|', {
+            r: new Resource({
+                _links: {}
+            })
+        });
+
+        expect(observable.pipe(
+            follow('link')
+        )).toBeObservable(cold('--u-|', {
+            u: undefined
+        }));
+    });
+
+    it('maps resource to accessor when link is present', () => {
+        const observable = cold('--r-|', {
+            r: new Resource({
+                _links: {
+                    link: { href: '/api/link' }
+                }
+            })
+        });
+
+        expect(observable.pipe(
+            follow('link')
+        )).toBeObservable(cold('--a-|', {
+            a: new Accessor({
+                _links: {
+                    self: { href: '/api/link' }
+                }
+            })
+        }));
     });
 });
