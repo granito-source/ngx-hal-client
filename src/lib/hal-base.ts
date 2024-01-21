@@ -1,9 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Type } from '@angular/core';
 import { Observable, catchError, map, throwError } from 'rxjs';
-import { Accessor } from './accessor';
-import { Collection } from './collection';
-import { HalError } from './hal-error';
+import { Accessor, HalError, objectFrom } from './internal';
 
 const self = 'self';
 
@@ -78,7 +76,7 @@ export abstract class HalBase {
      */
     create(obj: any): Observable<Accessor | undefined> {
         return this.withSelf(
-            self => this._client.post(self, this.sanitize(obj), {
+            self => this._client.post(self, objectFrom(obj), {
                 observe: 'response'
             }).pipe(
                 map(response => response.headers.get('Location') || undefined),
@@ -126,21 +124,6 @@ export abstract class HalBase {
 
     protected instanceOf<T>(type: Type<T>, obj: Object): T {
         return new type({ ...obj, _client: this._client });
-    }
-
-    protected sanitize(body: any): any {
-        if (typeof body !== 'object' || body === null)
-            return body;
-
-        if (body instanceof Collection)
-            return this.sanitize(body.values);
-
-        if (Array.isArray(body))
-            return body.map(x => this.sanitize(x));
-
-        const { _client, _links, _embedded, ...sanitized } = body;
-
-        return sanitized;
     }
 
     protected handleError(err: HttpErrorResponse): Observable<never> {

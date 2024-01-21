@@ -1,8 +1,7 @@
 import { Type } from '@angular/core';
 import { Observable, catchError, map } from 'rxjs';
 import * as URI from 'uri-template';
-import { Accessor } from './accessor';
-import { HalBase } from './hal-base';
+import { Accessor, HalBase, objectFrom } from './internal';
 
 /**
  * This type represent parameters for templated links.
@@ -65,7 +64,7 @@ export class Resource extends HalBase {
      * @returns an observable of resource accessor
      */
     update(): Observable<Accessor> {
-        return this.withSelf(self => this._client.put(self, this.sanitize(this)).pipe(
+        return this.withSelf(self => this._client.put(self, objectFrom(this)).pipe(
             map(() => this.accessor(self)),
             catchError(this.handleError)
         ));

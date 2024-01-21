@@ -1,9 +1,5 @@
 import { createHttpFactory, HttpMethod, SpectatorHttp } from '@ngneat/spectator/jest';
-import { Accessor } from './accessor';
-import { HalClientService } from './hal-client.service';
-import { HalError } from './hal-error';
-import { Resource } from './resource';
-import { Collection } from './collection';
+import { Accessor, Collection, HalClientService, HalError, Resource } from './internal';
 
 class TestResource extends Resource {
     version!: string;

@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Accessor } from './accessor';
+import { Accessor } from './internal';
 
 /**
  * This service is used to obtain API root accessors. It incapsulates
