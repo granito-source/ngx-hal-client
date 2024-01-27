@@ -1,5 +1,5 @@
 import { Type } from '@angular/core';
-import { NEVER, Observable, map, pipe, switchMap } from 'rxjs';
+import { EMPTY, Observable, map, pipe, switchMap } from 'rxjs';
 import { Accessor, Collection, Params, Resource } from './internal';
 
 export function objectFrom(item: any): any {
@@ -21,5 +21,13 @@ export function follow(rel: string, params?: Params | undefined):
     (observable: Observable<Resource>) => Observable<Accessor | undefined> {
     return pipe(
         map(resource => resource.follow(rel, params))
+    );
+}
+
+export function readCollection<T extends Resource>(type: Type<T>):
+    (observable: Observable<Accessor | undefined>) => Observable<Collection<T>> {
+    return pipe(
+        switchMap(accessor => !accessor ? EMPTY :
+            accessor.readCollection(type))
     );
 }
