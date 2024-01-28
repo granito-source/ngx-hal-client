@@ -1,6 +1,6 @@
 import { createSpyObject } from '@ngneat/spectator/jest';
 import { cold } from 'jest-marbles';
-import { Accessor, Collection, Resource, follow, objectFrom, readCollection } from './internal';
+import { Accessor, Collection, Resource, completeWith, follow, objectFrom, readCollection } from './internal';
 
 describe('objectFrom()', () => {
     it('returns undefined when parameter is undefined', () => {
@@ -99,20 +99,27 @@ describe('objectFrom()', () => {
     });
 });
 
+describe('completeWith()', () => {
+    it('makes source complete together with lifetime observable', () => {
+        const source = cold('-x-x-x-x-x');
+        const lifetime = cold('----|');
+
+        expect(source.pipe(
+            completeWith(lifetime)
+        )).toBeObservable(cold('-x-x|'));
+    });
+});
+
 describe('follow()', () => {
     it('maps to results of .follow() when it returns undefined', () => {
         const resource = createSpyObject(Resource);
-        const observable = cold('--r-|', {
-            r: resource
-        });
+        const observable = cold('--r-|', { r: resource });
 
         resource.follow.andReturn(undefined);
 
         expect(observable.pipe(
             follow('link', { p: 'param' })
-        )).toBeObservable(cold('--u-|', {
-            u: undefined
-        }));
+        )).toBeObservable(cold('--u-|', { u: undefined }));
         expect(observable).toSatisfyOnFlush(() => {
             expect(resource.follow).toHaveBeenCalledTimes(1);
             expect(resource.follow).toHaveBeenCalledWith('link',
@@ -127,17 +134,13 @@ describe('follow()', () => {
             }
         });
         const resource = createSpyObject(Resource);
-        const observable = cold('--r-|', {
-            r: resource
-        });
+        const observable = cold('--r-|', { r: resource });
 
         resource.follow.andReturn(accessor);
 
         expect(observable.pipe(
             follow('link', { p: 'param' })
-        )).toBeObservable(cold('--a-|', {
-            a: accessor
-        }));
+        )).toBeObservable(cold('--a-|', { a: accessor }));
         expect(observable).toSatisfyOnFlush(() => {
             expect(resource.follow).toHaveBeenCalledTimes(1);
             expect(resource.follow).toHaveBeenCalledWith('link',
@@ -147,24 +150,20 @@ describe('follow()', () => {
 });
 
 describe('readCollection()', () => {
-    it('maps undefined to nothing', () => {
-        const observable = cold('--u-|', {
-            u: undefined
-        });
+    it('maps undefined to undefined', () => {
+        const observable = cold('--u-|', { u: undefined });
 
         expect(observable.pipe(
             readCollection(Resource)
-        )).toBeObservable(cold('----|'));
+        )).toBeObservable(cold('--u-|', { u: undefined }));
     });
 
-    it('maps null to nothing', () => {
-        const observable = cold('--n-|', {
-            n: null
-        });
+    it('maps null to undefined', () => {
+        const observable = cold('--n-|', { n: null });
 
         expect(observable.pipe(
             readCollection(Resource)
-        )).toBeObservable(cold('----|'));
+        )).toBeObservable(cold('--u-|', { u: undefined }));
     });
 
     it('maps Accessor to .readCollection() results', () => {

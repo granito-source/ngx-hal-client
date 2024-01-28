@@ -1,5 +1,5 @@
 import { Type } from '@angular/core';
-import { EMPTY, Observable, map, pipe, switchMap } from 'rxjs';
+import { Observable, map, of, pipe, switchMap, takeUntil } from 'rxjs';
 import { Accessor, Collection, Params, Resource } from './internal';
 
 /**
@@ -31,6 +31,22 @@ export function objectFrom(item: any): any {
 }
 
 /**
+ * RxJS operator producing a new observable that emits the values emitted
+ * by the source {@link Observable} until the lifetime {@link Observable}
+ * completes.
+ *
+ * @param lifetime the lifetime observable
+ * @returns a function that transforms the source {@link Observable}
+ */
+export function completeWith<T>(lifetime: Observable<any>):
+    (observable: Observable<T>) => Observable<T> {
+    const terminator$ = new Observable<void>(subscriber =>
+        lifetime.subscribe().add(() => subscriber.next()));
+
+    return pipe(takeUntil(terminator$));
+}
+
+/**
  * RxJS operator to follow a link on a {@link Resource}. It is
  * equivalent to
  * ```ts
@@ -38,8 +54,8 @@ export function objectFrom(item: any): any {
  * ```
  *
  * @param rel the relation to follow
- * @param params the parameters for the link (optional)
- * @returns a new {@link Observable} with the operator applied
+ * @param params the parameters to expand the link (optional)
+ * @returns a function that transforms the source {@link Observable}
  */
 export function follow(rel: string, params?: Params | undefined):
     (observable: Observable<Resource>) => Observable<Accessor | undefined> {
@@ -52,7 +68,7 @@ export function follow(rel: string, params?: Params | undefined):
  * RxJS operator to read a collection of resources using an
  * {@link Accessor}. It is equivalent to
  * ```ts
- * switchMap(accessor => EMPTY)
+ * switchMap(accessor => of(undefined))
  * ```
  * if `accessor` is `null` or `undefined` and to
  * ```ts
@@ -61,12 +77,12 @@ export function follow(rel: string, params?: Params | undefined):
  * otherwise.
  *
  * @param type the collection element type
- * @returns a new {@link Observable} with the operator applied
+ * @returns a function that transforms the source {@link Observable}
  */
 export function readCollection<T extends Resource>(type: Type<T>):
-    (observable: Observable<Accessor | undefined>) => Observable<Collection<T>> {
+    (observable: Observable<Accessor | undefined>) => Observable<Collection<T> | undefined> {
     return pipe(
-        switchMap(accessor => !accessor ? EMPTY :
+        switchMap(accessor => !accessor ? of(undefined) :
             accessor.readCollection(type))
     );
 }
