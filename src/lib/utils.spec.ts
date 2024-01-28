@@ -1,7 +1,7 @@
 import { createSpyObject } from '@ngneat/spectator/jest';
 import { cold } from 'jest-marbles';
 import { Accessor, Collection, Resource, completeWith, defined, follow,
-    objectFrom, read, readCollection } from './internal';
+    objectFrom, read, readCollection, refresh } from './internal';
 
 describe('objectFrom()', () => {
     it('returns undefined when parameter is undefined', () => {
@@ -138,14 +138,14 @@ describe('defined()', () => {
 describe('follow()', () => {
     it('maps to results of .follow() when it returns undefined', () => {
         const resource = createSpyObject(Resource);
-        const observable = cold('--r-|', { r: resource });
+        const source = cold('--r-|', { r: resource });
 
         resource.follow.andReturn(undefined);
 
-        expect(observable.pipe(
+        expect(source.pipe(
             follow('link', { p: 'param' })
         )).toBeObservable(cold('--u-|', { u: undefined }));
-        expect(observable).toSatisfyOnFlush(() => {
+        expect(source).toSatisfyOnFlush(() => {
             expect(resource.follow).toHaveBeenCalledTimes(1);
             expect(resource.follow).toHaveBeenCalledWith('link',
                 { p: 'param' });
@@ -159,14 +159,14 @@ describe('follow()', () => {
             }
         });
         const resource = createSpyObject(Resource);
-        const observable = cold('--r-|', { r: resource });
+        const source = cold('--r-|', { r: resource });
 
         resource.follow.andReturn(accessor);
 
-        expect(observable.pipe(
+        expect(source.pipe(
             follow('link', { p: 'param' })
         )).toBeObservable(cold('--a-|', { a: accessor }));
-        expect(observable).toSatisfyOnFlush(() => {
+        expect(source).toSatisfyOnFlush(() => {
             expect(resource.follow).toHaveBeenCalledTimes(1);
             expect(resource.follow).toHaveBeenCalledWith('link',
                 { p: 'param' });
@@ -176,17 +176,17 @@ describe('follow()', () => {
 
 describe('readCollection()', () => {
     it('maps undefined to undefined', () => {
-        const observable = cold('--u-|', { u: undefined });
+        const source = cold('--u-|', { u: undefined });
 
-        expect(observable.pipe(
+        expect(source.pipe(
             readCollection(Resource)
         )).toBeObservable(cold('--u-|', { u: undefined }));
     });
 
     it('maps null to undefined', () => {
-        const observable = cold('--n-|', { n: null });
+        const source = cold('--n-|', { n: null });
 
-        expect(observable.pipe(
+        expect(source.pipe(
             readCollection(Resource)
         )).toBeObservable(cold('--u-|', { u: undefined }));
     });
@@ -198,16 +198,16 @@ describe('readCollection()', () => {
             }
         });
         const accessor = createSpyObject(Accessor);
-        const observable = cold('--a----|', {
+        const source = cold('--a----|', {
             a: accessor
         });
 
         accessor.readCollection.andReturn(cold('--c|', { c: collection }));
 
-        expect(observable.pipe(
+        expect(source.pipe(
             readCollection(Resource)
         )).toBeObservable(cold('----c--|', { c: collection }));
-        expect(observable).toSatisfyOnFlush(() => {
+        expect(source).toSatisfyOnFlush(() => {
             expect(accessor.readCollection).toHaveBeenCalledTimes(1);
             expect(accessor.readCollection).toHaveBeenCalledWith(Resource);
         });
@@ -216,17 +216,17 @@ describe('readCollection()', () => {
 
 describe('read()', () => {
     it('maps undefined to undefined', () => {
-        const observable = cold('--u-|', { u: undefined });
+        const source = cold('--u-|', { u: undefined });
 
-        expect(observable.pipe(
+        expect(source.pipe(
             read(Resource)
         )).toBeObservable(cold('--u-|', { u: undefined }));
     });
 
     it('maps null to undefined', () => {
-        const observable = cold('--n-|', { n: null });
+        const source = cold('--n-|', { n: null });
 
-        expect(observable.pipe(
+        expect(source.pipe(
             read(Resource)
         )).toBeObservable(cold('--u-|', { u: undefined }));
     });
@@ -250,6 +250,68 @@ describe('read()', () => {
         expect(source).toSatisfyOnFlush(() => {
             expect(accessor.read).toHaveBeenCalledTimes(1);
             expect(accessor.read).toHaveBeenCalledWith(Resource);
+        });
+    });
+});
+
+describe('refresh()', () => {
+    it('maps undefined to undefined', () => {
+        const source = cold('--u-|', { u: undefined });
+
+        expect(source.pipe(
+            refresh()
+        )).toBeObservable(cold('--u-|', { u: undefined }));
+    });
+
+    it('maps null to undefined', () => {
+        const source = cold('--n-|', { n: null });
+
+        expect(source.pipe(
+            refresh()
+        )).toBeObservable(cold('--u-|', { u: undefined }));
+    });
+
+    it('maps Resource to .read() result', () => {
+        const result = new Resource({
+            _links: {
+                self: { href: '/api/resource' }
+            }
+        });
+        const resource = createSpyObject(Resource);
+        const source = cold('--r----|', {
+            r: resource
+        });
+
+        resource.read.andReturn(cold('--r|', { r: result }));
+
+        expect(source.pipe(
+            refresh()
+        )).toBeObservable(cold('----r--|', { r: result }));
+        expect(source).toSatisfyOnFlush(() => {
+            expect(resource.read).toHaveBeenCalledTimes(1);
+            expect(resource.read).toHaveBeenCalledWith();
+        });
+    });
+
+    it('maps Collection to .read() result', () => {
+        const result = new Collection(Resource, {
+            _embedded: {
+                resources: []
+            }
+        });
+        const collection = createSpyObject(Collection);
+        const source = cold('--c----|', {
+            c: collection
+        });
+
+        collection.read.andReturn(cold('--c|', { c: result }));
+
+        expect(source.pipe(
+            refresh()
+        )).toBeObservable(cold('----c--|', { c: result }));
+        expect(source).toSatisfyOnFlush(() => {
+            expect(collection.read).toHaveBeenCalledTimes(1);
+            expect(collection.read).toHaveBeenCalledWith();
         });
     });
 });

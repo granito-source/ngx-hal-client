@@ -65,8 +65,8 @@ export function follow(rel: string, params?: Params | undefined):
 }
 
 /**
- * Returns an RxJS operator to read a resource using an {@link Accessor}.
- * It is equivalent to
+ * Returns an RxJS operator to read a {@link Resource} using an
+ * {@link Accessor}. It is equivalent to
  * ```ts
  * switchMap(accessor => of(undefined))
  * ```
@@ -88,8 +88,8 @@ export function read<T extends Resource>(type: Type<T>):
 }
 
 /**
- * Returns an RxJS operator to read a collection of resources using an
- * {@link Accessor}. It is equivalent to
+ * Returns an RxJS operator to read a {@link Collection} of resources
+ * using an {@link Accessor}. It is equivalent to
  * ```ts
  * switchMap(accessor => of(undefined))
  * ```
@@ -107,6 +107,27 @@ export function readCollection<T extends Resource>(type: Type<T>):
     return pipe(
         switchMap(accessor => !accessor ? of(undefined) :
             accessor.readCollection(type))
+    );
+}
+
+/**
+ * Returns an RxJS operator to refresh a {@link Resource} or
+ * {@link Collection} of resources. It is equivalent to
+ * ```ts
+ * switchMap(resource => of(undefined))
+ * ```
+ * if `resource` is `null` or `undefined` and to
+ * ```ts
+ * switchMap(resource => resource.read())
+ * ```
+ * otherwise.
+ *
+ * @returns a function that transforms the source {@link Observable}
+ */
+export function refresh<T extends Resource>():
+    OperatorFunction<T | undefined, T | undefined> {
+    return pipe(
+        switchMap(resource => !resource ? of(undefined) : resource.read())
     );
 }
 
