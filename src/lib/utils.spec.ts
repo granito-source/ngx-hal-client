@@ -1,6 +1,6 @@
 import { createSpyObject } from '@ngneat/spectator/jest';
 import { cold } from 'jest-marbles';
-import { Accessor, Collection, Resource, completeWith, follow, objectFrom, readCollection } from './internal';
+import { Accessor, Collection, Resource, completeWith, defined, follow, objectFrom, readCollection } from './internal';
 
 describe('objectFrom()', () => {
     it('returns undefined when parameter is undefined', () => {
@@ -107,6 +107,30 @@ describe('completeWith()', () => {
         expect(source.pipe(
             completeWith(lifetime)
         )).toBeObservable(cold('-x-x|'));
+    });
+});
+
+describe('defined()', () => {
+    it('filters out null and undefiled elements', () => {
+        const source = cold('bisuona|', {
+            b: false,
+            i: 0,
+            s: '',
+            u: undefined,
+            o: {},
+            n: null,
+            a: []
+        });
+
+        expect(source.pipe(
+            defined()
+        )).toBeObservable(cold('bis-o-a|', {
+            b: false,
+            i: 0,
+            s: '',
+            o: {},
+            a: []
+        }));
     });
 });
 

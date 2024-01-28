@@ -1,5 +1,5 @@
 import { Type } from '@angular/core';
-import { Observable, map, of, pipe, switchMap, takeUntil } from 'rxjs';
+import { Observable, OperatorFunction, filter, map, of, pipe, switchMap, takeUntil } from 'rxjs';
 import { Accessor, Collection, Params, Resource } from './internal';
 
 /**
@@ -31,15 +31,14 @@ export function objectFrom(item: any): any {
 }
 
 /**
- * RxJS operator producing a new observable that emits the values emitted
- * by the source {@link Observable} until the lifetime {@link Observable}
- * completes.
+ * Returns an RxJS operator that makes the source {@link Observable}
+ * complete at the same time as the lifetime {@link Observable}.
  *
  * @param lifetime the lifetime observable
  * @returns a function that transforms the source {@link Observable}
  */
 export function completeWith<T>(lifetime: Observable<any>):
-    (observable: Observable<T>) => Observable<T> {
+    OperatorFunction<T, T> {
     const terminator$ = new Observable<void>(subscriber =>
         lifetime.subscribe().add(() => subscriber.next()));
 
@@ -47,7 +46,7 @@ export function completeWith<T>(lifetime: Observable<any>):
 }
 
 /**
- * RxJS operator to follow a link on a {@link Resource}. It is
+ * Returns an RxJS operator to follow a link on a {@link Resource}. It is
  * equivalent to
  * ```ts
  * map(resource -> resource.follow(rel, params))
@@ -58,14 +57,14 @@ export function completeWith<T>(lifetime: Observable<any>):
  * @returns a function that transforms the source {@link Observable}
  */
 export function follow(rel: string, params?: Params | undefined):
-    (observable: Observable<Resource>) => Observable<Accessor | undefined> {
+    OperatorFunction<Resource, Accessor | undefined> {
     return pipe(
         map(resource => resource.follow(rel, params))
     );
 }
 
 /**
- * RxJS operator to read a collection of resources using an
+ * Returns an RxJS operator to read a collection of resources using an
  * {@link Accessor}. It is equivalent to
  * ```ts
  * switchMap(accessor => of(undefined))
@@ -80,9 +79,27 @@ export function follow(rel: string, params?: Params | undefined):
  * @returns a function that transforms the source {@link Observable}
  */
 export function readCollection<T extends Resource>(type: Type<T>):
-    (observable: Observable<Accessor | undefined>) => Observable<Collection<T> | undefined> {
+    OperatorFunction<Accessor | undefined, Collection<T> | undefined> {
     return pipe(
         switchMap(accessor => !accessor ? of(undefined) :
             accessor.readCollection(type))
     );
+}
+
+/**
+ * Returns an RxJS operator to filter out `null` and `undefined` items
+ * from the source {@link Observable}.
+ *
+ * @returns a function that transforms the source {@link Observable}
+ */
+export function defined<T>():
+    OperatorFunction<T | null | undefined, T extends null | undefined ? never : T> {
+    return pipe(
+        filter(isDefined)
+    );
+}
+
+function isDefined<T>(arg: T | null | undefined):
+    arg is T extends null | undefined ? never : T {
+    return arg !== undefined && arg !== null;
 }
