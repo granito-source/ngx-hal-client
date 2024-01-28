@@ -4,4 +4,5 @@ export * from './resource';
 export * from './collection';
 export * from './accessor';
 export * from './utils';
+export * from './rxjs';
 export * from './hal-client.service';
