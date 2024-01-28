@@ -1,6 +1,7 @@
 import { createSpyObject } from '@ngneat/spectator/jest';
 import { cold } from 'jest-marbles';
-import { Accessor, Collection, Resource, completeWith, defined, follow, objectFrom, readCollection } from './internal';
+import { Accessor, Collection, Resource, completeWith, defined, follow,
+    objectFrom, read, readCollection } from './internal';
 
 describe('objectFrom()', () => {
     it('returns undefined when parameter is undefined', () => {
@@ -190,7 +191,7 @@ describe('readCollection()', () => {
         )).toBeObservable(cold('--u-|', { u: undefined }));
     });
 
-    it('maps Accessor to .readCollection() results', () => {
+    it('maps Accessor to .readCollection() result', () => {
         const collection = new Collection(Resource, {
             _embedded: {
                 resources: []
@@ -209,6 +210,46 @@ describe('readCollection()', () => {
         expect(observable).toSatisfyOnFlush(() => {
             expect(accessor.readCollection).toHaveBeenCalledTimes(1);
             expect(accessor.readCollection).toHaveBeenCalledWith(Resource);
+        });
+    });
+});
+
+describe('read()', () => {
+    it('maps undefined to undefined', () => {
+        const observable = cold('--u-|', { u: undefined });
+
+        expect(observable.pipe(
+            read(Resource)
+        )).toBeObservable(cold('--u-|', { u: undefined }));
+    });
+
+    it('maps null to undefined', () => {
+        const observable = cold('--n-|', { n: null });
+
+        expect(observable.pipe(
+            read(Resource)
+        )).toBeObservable(cold('--u-|', { u: undefined }));
+    });
+
+    it('maps Accessor to .read() result', () => {
+        const resource = new Resource({
+            _links: {
+                self: { href: '/api/resource' }
+            }
+        });
+        const accessor = createSpyObject(Accessor);
+        const source = cold('--a----|', {
+            a: accessor
+        });
+
+        accessor.read.andReturn(cold('--r|', { r: resource }));
+
+        expect(source.pipe(
+            read(Resource)
+        )).toBeObservable(cold('----r--|', { r: resource }));
+        expect(source).toSatisfyOnFlush(() => {
+            expect(accessor.read).toHaveBeenCalledTimes(1);
+            expect(accessor.read).toHaveBeenCalledWith(Resource);
         });
     });
 });

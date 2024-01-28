@@ -1,5 +1,6 @@
 import { Type } from '@angular/core';
-import { Observable, OperatorFunction, filter, map, of, pipe, switchMap, takeUntil } from 'rxjs';
+import { Observable, OperatorFunction, filter, map, of, pipe, switchMap,
+    takeUntil } from 'rxjs';
 import { Accessor, Collection, Params, Resource } from './internal';
 
 /**
@@ -60,6 +61,29 @@ export function follow(rel: string, params?: Params | undefined):
     OperatorFunction<Resource, Accessor | undefined> {
     return pipe(
         map(resource => resource.follow(rel, params))
+    );
+}
+
+/**
+ * Returns an RxJS operator to read a resource using an {@link Accessor}.
+ * It is equivalent to
+ * ```ts
+ * switchMap(accessor => of(undefined))
+ * ```
+ * if `accessor` is `null` or `undefined` and to
+ * ```ts
+ * switchMap(accessor => accessor.read(type))
+ * ```
+ * otherwise.
+ *
+ * @param type the resource type
+ * @returns a function that transforms the source {@link Observable}
+ */
+export function read<T extends Resource>(type: Type<T>):
+    OperatorFunction<Accessor | undefined, T | undefined> {
+    return pipe(
+        switchMap(accessor => !accessor ? of(undefined) :
+            accessor.read(type))
     );
 }
 
