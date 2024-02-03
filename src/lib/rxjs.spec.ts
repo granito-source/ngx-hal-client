@@ -1,7 +1,7 @@
 import { createSpyObject } from '@ngneat/spectator/jest';
 import { cold } from 'jest-marbles';
 import { Accessor, Collection, Resource, completeWith, create, defined,
-    follow, read, readCollection, refresh, update } from './internal';
+    follow, read, readCollection, refresh, del, update } from './internal';
 
 class TestResource extends Resource {
     id!: number;
@@ -326,6 +326,54 @@ describe('update()', () => {
             expect(resource.id).toBe(2);
             expect(resource.update).toHaveBeenCalledTimes(1);
             expect(resource.update).toHaveBeenCalledWith();
+        });
+    });
+});
+
+describe('del()', () => {
+    it('does nothing for undefined', () => {
+        const source = cold('--u-|', { u: undefined });
+
+        expect(source.pipe(
+            del()
+        )).toBeObservable(cold('--v-|', { v: undefined }));
+    });
+
+    it('does nothing for null', () => {
+        const source = cold('--n-|', { n: null });
+
+        expect(source.pipe(
+            del()
+        )).toBeObservable(cold('--v-|', { v: undefined }));
+    });
+
+    it('calls delete() on Accessor', () => {
+        const accessor = createSpyObject(Accessor);
+        const source = cold('--a----|', { a: accessor });
+
+        accessor.delete.andReturn(cold('--v|', { v: undefined }));
+
+        expect(source.pipe(
+            del()
+        )).toBeObservable(cold('----v--|', { v: undefined }));
+        expect(source).toSatisfyOnFlush(() => {
+            expect(accessor.delete).toHaveBeenCalledTimes(1);
+            expect(accessor.delete).toHaveBeenCalledWith();
+        });
+    });
+
+    it('calls delete() on Resource', () => {
+        const resource = createSpyObject(TestResource);
+        const source = cold('--r----|', { r: resource });
+
+        resource.delete.andReturn(cold('--v|', { v: undefined }));
+
+        expect(source.pipe(
+            del()
+        )).toBeObservable(cold('----v--|', { v: undefined }));
+        expect(source).toSatisfyOnFlush(() => {
+            expect(resource.delete).toHaveBeenCalledTimes(1);
+            expect(resource.delete).toHaveBeenCalledWith();
         });
     });
 });

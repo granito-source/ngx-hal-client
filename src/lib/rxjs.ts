@@ -23,7 +23,7 @@ export function completeWith<T>(lifetime: Observable<any>):
  * Returns an RxJS operator to follow a link on a {@link Resource}. It is
  * equivalent to
  * ```ts
- * map(resource -> resource.follow(rel, params))
+ * map(resource => resource?.follow(rel, params))
  * ```
  *
  * @param rel the relation to follow
@@ -38,8 +38,8 @@ export function follow(rel: string, params?: Params | undefined):
 }
 
 /**
- * Returns an RxJS operator to create a new resource using an
- * {@link Accessor} or {@link Resource}. It is equivalent to
+ * Returns an RxJS operator to create a new resource identified by
+ * an {@link Accessor} or a {@link Resource}. It is equivalent to
  * ```ts
  * switchMap(x => of(undefined))
  * ```
@@ -153,6 +153,26 @@ export function update<T extends Resource>(edit: (resource: T) => void):
 
             return resource.update();
         })
+    );
+}
+
+/**
+ * Returns an RxJS operator to delete a resource identified by
+ * an {@link Accessor} or a {@link Resource}. It is equivalent to
+ * ```ts
+ * switchMap(x => of(undefined))
+ * ```
+ * if the stream value is `null` or `undefined` and to
+ * ```ts
+ * switchMap(x => x.delete())
+ * ```
+ * otherwise.
+ *
+ * @returns a function that transforms the source {@link Observable}
+ */
+export function del(): OperatorFunction<HalBase | undefined, void> {
+    return pipe(
+        switchMap(base => !base ? of(undefined) : base.delete())
     );
 }
 
