@@ -1,7 +1,8 @@
 import { Type } from '@angular/core';
 import { Observable, OperatorFunction, filter, map, of, pipe, switchMap,
     takeUntil } from 'rxjs';
-import { Accessor, Collection, Params, Resource, isDefined } from './internal';
+import { Accessor, Collection, HalBase, Params, Resource,
+    isDefined } from './internal';
 
 /**
  * Returns an RxJS operator that makes the source {@link Observable}
@@ -33,6 +34,28 @@ export function follow(rel: string, params?: Params | undefined):
     OperatorFunction<Resource | null | undefined, Accessor | undefined> {
     return pipe(
         map(resource => resource?.follow(rel, params))
+    );
+}
+
+/**
+ * Returns an RxJS operator to create a new resource using an
+ * {@link Accessor} or {@link Resource}. It is equivalent to
+ * ```ts
+ * switchMap(x => of(undefined))
+ * ```
+ * if the stream value is `null` or `undefined` and to
+ * ```ts
+ * switchMap(x => x.create(obj))
+ * ```
+ * otherwise.
+ *
+ * @param obj the value for the resource
+ * @returns a function that transforms the source {@link Observable}
+ */
+export function create(obj: any):
+    OperatorFunction<HalBase | undefined, Accessor | undefined> {
+    return pipe(
+        switchMap(base => !base ? of(undefined) : base.create(obj))
     );
 }
 
