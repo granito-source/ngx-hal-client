@@ -1,7 +1,11 @@
 import { createSpyObject } from '@ngneat/spectator/jest';
 import { cold } from 'jest-marbles';
 import { Accessor, Collection, Resource, completeWith, create, defined,
-    follow, read, readCollection, refresh } from './internal';
+    follow, read, readCollection, refresh, update } from './internal';
+
+class TestResource extends Resource {
+    id!: number;
+}
 
 describe('completeWith()', () => {
     it('makes source complete together with lifetime observable', () => {
@@ -56,7 +60,7 @@ describe('follow()', () => {
     });
 
     it('maps to results of .follow() when it returns undefined', () => {
-        const resource = createSpyObject(Resource);
+        const resource = createSpyObject(TestResource);
         const source = cold('--r-|', { r: resource });
 
         resource.follow.andReturn(undefined);
@@ -77,7 +81,7 @@ describe('follow()', () => {
                 self: { href: '/api/link' }
             }
         });
-        const resource = createSpyObject(Resource);
+        const resource = createSpyObject(TestResource);
         const source = cold('--r-|', { r: resource });
 
         resource.follow.andReturn(accessor);
@@ -111,7 +115,7 @@ describe('create()', () => {
     });
 
     it('maps Accessor to .create() result', () => {
-        const newAccessor = new Accessor({
+        const result = new Accessor({
             _links: {
                 self: { href: '/api/resource' }
             }
@@ -119,11 +123,11 @@ describe('create()', () => {
         const accessor = createSpyObject(Accessor);
         const source = cold('--a----|', { a: accessor });
 
-        accessor.create.andReturn(cold('--a|', { a: newAccessor }));
+        accessor.create.andReturn(cold('--a|', { a: result }));
 
         expect(source.pipe(
             create({ id: 1 })
-        )).toBeObservable(cold('----a--|', { a: newAccessor }));
+        )).toBeObservable(cold('----a--|', { a: result }));
         expect(source).toSatisfyOnFlush(() => {
             expect(accessor.create).toHaveBeenCalledTimes(1);
             expect(accessor.create).toHaveBeenCalledWith({ id: 1 });
@@ -136,7 +140,7 @@ describe('create()', () => {
                 self: { href: '/api/resource' }
             }
         });
-        const resource = createSpyObject(Resource);
+        const resource = createSpyObject(TestResource);
         const source = cold('--r----|', { r: resource });
 
         resource.create.andReturn(cold('--a|', { a: accessor }));
@@ -156,7 +160,7 @@ describe('read()', () => {
         const source = cold('--u-|', { u: undefined });
 
         expect(source.pipe(
-            read(Resource)
+            read(TestResource)
         )).toBeObservable(cold('--u-|', { u: undefined }));
     });
 
@@ -164,12 +168,13 @@ describe('read()', () => {
         const source = cold('--n-|', { n: null });
 
         expect(source.pipe(
-            read(Resource)
+            read(TestResource)
         )).toBeObservable(cold('--u-|', { u: undefined }));
     });
 
     it('maps Accessor to .read() result', () => {
-        const resource = new Resource({
+        const resource = new TestResource({
+            id: 1,
             _links: {
                 self: { href: '/api/resource' }
             }
@@ -180,11 +185,11 @@ describe('read()', () => {
         accessor.read.andReturn(cold('--r|', { r: resource }));
 
         expect(source.pipe(
-            read(Resource)
+            read(TestResource)
         )).toBeObservable(cold('----r--|', { r: resource }));
         expect(source).toSatisfyOnFlush(() => {
             expect(accessor.read).toHaveBeenCalledTimes(1);
-            expect(accessor.read).toHaveBeenCalledWith(Resource);
+            expect(accessor.read).toHaveBeenCalledWith(TestResource);
         });
     });
 });
@@ -194,7 +199,7 @@ describe('readCollection()', () => {
         const source = cold('--u-|', { u: undefined });
 
         expect(source.pipe(
-            readCollection(Resource)
+            readCollection(TestResource)
         )).toBeObservable(cold('--u-|', { u: undefined }));
     });
 
@@ -202,12 +207,12 @@ describe('readCollection()', () => {
         const source = cold('--n-|', { n: null });
 
         expect(source.pipe(
-            readCollection(Resource)
+            readCollection(TestResource)
         )).toBeObservable(cold('--u-|', { u: undefined }));
     });
 
     it('maps Accessor to .readCollection() result', () => {
-        const collection = new Collection(Resource, {
+        const collection = new Collection(TestResource, {
             _embedded: {
                 resources: []
             }
@@ -218,11 +223,11 @@ describe('readCollection()', () => {
         accessor.readCollection.andReturn(cold('--c|', { c: collection }));
 
         expect(source.pipe(
-            readCollection(Resource)
+            readCollection(TestResource)
         )).toBeObservable(cold('----c--|', { c: collection }));
         expect(source).toSatisfyOnFlush(() => {
             expect(accessor.readCollection).toHaveBeenCalledTimes(1);
-            expect(accessor.readCollection).toHaveBeenCalledWith(Resource);
+            expect(accessor.readCollection).toHaveBeenCalledWith(TestResource);
         });
     });
 });
@@ -245,12 +250,13 @@ describe('refresh()', () => {
     });
 
     it('maps Resource to .read() result', () => {
-        const result = new Resource({
+        const result = new TestResource({
+            id: 1,
             _links: {
                 self: { href: '/api/resource' }
             }
         });
-        const resource = createSpyObject(Resource);
+        const resource = createSpyObject(TestResource);
         const source = cold('--r----|', { r: resource });
 
         resource.read.andReturn(cold('--r|', { r: result }));
@@ -265,7 +271,7 @@ describe('refresh()', () => {
     });
 
     it('maps Collection to .read() result', () => {
-        const result = new Collection(Resource, {
+        const result = new Collection(TestResource, {
             _embedded: {
                 resources: []
             }
@@ -281,6 +287,45 @@ describe('refresh()', () => {
         expect(source).toSatisfyOnFlush(() => {
             expect(collection.read).toHaveBeenCalledTimes(1);
             expect(collection.read).toHaveBeenCalledWith();
+        });
+    });
+});
+
+describe('update()', () => {
+    it('maps undefined to undefined', () => {
+        const source = cold('--u-|', { u: undefined });
+
+        expect(source.pipe(
+            update(x => x.id = 2)
+        )).toBeObservable(cold('--u-|', { u: undefined }));
+    });
+
+    it('maps null to undefined', () => {
+        const source = cold('--n-|', { n: null });
+
+        expect(source.pipe(
+            update(x => x.id = 2)
+        )).toBeObservable(cold('--u-|', { u: undefined }));
+    });
+
+    it('maps edited Resource to .update() result', () => {
+        const accessor = new Accessor({
+            _links: {
+                self: { href: '/api/resource' }
+            }
+        });
+        const resource = createSpyObject(TestResource, { id: 1 });
+        const source = cold('--r----|', { r: resource });
+
+        resource.update.andReturn(cold('--a|', { a: accessor }));
+
+        expect(source.pipe(
+            update(x => x.id = 2)
+        )).toBeObservable(cold('----a--|', { a: accessor }));
+        expect(source).toSatisfyOnFlush(() => {
+            expect(resource.id).toBe(2);
+            expect(resource.update).toHaveBeenCalledTimes(1);
+            expect(resource.update).toHaveBeenCalledWith();
         });
     });
 });
