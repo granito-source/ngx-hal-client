@@ -207,6 +207,22 @@ In the example above, `messages$` observable will emit either the
 accessor to the collection of messages or undefined if the API root
 does not have `messages` link.
 
+A shorter way to do the same is to use `follow()` RxJS operator
+provided by the library.
+
+```ts
+@Injectable({ providedIn: 'root' })
+export class MessageService {
+    private messages$: Observable<Accessor | undefined>;
+
+    constructor(apiRootService: ApiRootService) {
+        this.messages$ = apiRootService.apiRoot.pipe(
+            follow('messages')
+        );
+    }
+}
+```
+
 ### CRUD operations
 
 `Accessor` and `Resource` objects allow you to execute CRUD operations
@@ -223,7 +239,7 @@ read the collection and access its elements.
     readFirst(): Observable<Message | undefined> {
         return this.messages$.pipe(
             take(1),
-            filter(isDefined),
+            defined(),
             switchMap(messages => messages.readCollection(Message)),
             map(collection => collection.values[0]),
             defaultIfEmpty(undefined)
@@ -233,6 +249,19 @@ read the collection and access its elements.
 
 The example above shows how to access the first message in the collection
 if it exists.
+
+To do the same with convenience RxJS `readCollection()` operator you
+write:
+
+```ts
+    readFirst(): Observable<Message | undefined> {
+        return this.messages$.pipe(
+            take(1),
+            readCollection(Message),
+            map(collection => collection?.values[0])
+        );
+    }
+```
 
 #### Read resource
 
@@ -266,6 +295,17 @@ is how you can refresh the API root in `ApiRootService`.
     }
 ```
 
+And here is how to implement the same with `refresh()` RxJS operator.
+
+```ts
+    refresh(): void {
+        this.apiRoot$.pipe(
+            take(1),
+            refresh()
+        ).subscribe(api => this.apiRoot$.next(api));
+    }
+```
+
 #### Create resource
 
 To create a new message, you can use `create()` method defined on
@@ -275,7 +315,7 @@ To create a new message, you can use `create()` method defined on
     post(message: { text: string; }): Observable<Accessor | undefined> {
         return this.messages$.pipe(
             take(1),
-            filter(isDefined),
+            defined(),
             switchMap(messages => messages.create(message)),
             defaultIfEmpty(undefined)
         );
@@ -289,20 +329,53 @@ in the `Location` header, then the observable will emit an accessor
 for this resource. You can use it to read the resource immediately after
 it is created, e.g. by using `switchMap()`.
 
+With RxJS `create()` operator it is done like this:
+
+```ts
+    post(message: { text: string; }): Observable<Accessor | undefined> {
+        return this.messages$.pipe(
+            take(1),
+            create(message)
+        );
+    }
+```
+
 #### Update resource
 
 `Resource` instances can be updated in the API by using `update()` method.
 
 ```ts
-    update(message: Message): Observable<Accessor> {
-        message.text = 'They call it "Le Royal Cheese".';
+    private current$: Observable<Message>;
+    ...
+    edit(text: string): Observable<Message> {
+        return this.current$.pipe(
+            take(1),
+            switchMap(message => {
+                message.text = text;
 
-        return message.update();
+                return message.update();
+            }),
+            read(Message)
+        );
     }
 ```
 
 On successful completion the observable will emit an accessor for the
 resource, which can be used to obtain a fresh copy of it from the API.
+
+The same can be done using `update()` RxJS operator.
+
+```ts
+    private current$: Observable<Message>;
+    ...
+    edit(text: string): Observable<Message> {
+        return this.current$.pipe(
+            take(1),
+            update(message => message.text = text),
+            read(Message)
+        );
+    }
+```
 
 #### Delete resource
 
@@ -310,8 +383,26 @@ And finally, `Resource` and `Accessor` have `delete()` method allowing
 to delete the resource.
 
 ```ts
-    delete(message: Message): Observable<void> {
-        return message.delete();
+    private current$: Observable<Message>;
+    ...
+    deleteCurrent(): Observable<void> {
+        return this.current$.pipe(
+            take(1),
+            switchMap(message => message.delete())
+        );
+    }
+```
+
+And here is the operator version:
+
+```ts
+    private current$: Observable<Message>;
+    ...
+    deleteCurrent(): Observable<void> {
+        return this.current$.pipe(
+            take(1),
+            del()
+        );
     }
 ```
 
