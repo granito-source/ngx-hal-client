@@ -112,7 +112,10 @@ export class Resource extends HalBase {
     }
 
     protected clone(override: any = {}): this {
-        return this.constructor({ ...this, ...override });
+        return new (this.constructor as Type<this>)({
+            ...this,
+            ...override
+        });
     }
 
     protected arrayOf<T extends Resource>(type: Type<T>,

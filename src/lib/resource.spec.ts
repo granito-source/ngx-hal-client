@@ -1,8 +1,14 @@
-import { createHttpFactory, HttpMethod, SpectatorHttp } from '@ngneat/spectator/jest';
-import { Accessor, Collection, HalClientService, HalError, Resource } from './internal';
+import { createHttpFactory, HttpMethod,
+    SpectatorHttp } from '@ngneat/spectator/jest';
+import { Accessor, Collection, HalClientService, HalError,
+    Resource } from './internal';
 
 class TestResource extends Resource {
     version!: string;
+
+    edit(version: string): TestResource {
+        return this.clone({ version });
+    }
 }
 
 describe('Resource', () => {
@@ -58,6 +64,13 @@ describe('Resource', () => {
     it('gets created', () => {
         expect(resource).toBeDefined();
         expect(resource.self).toBe('/api/test');
+    });
+
+    it('can be cloned/edited', () => {
+        const edited = resource.edit('9.5.1');
+
+        expect(edited).not.toBe(resource);
+        expect(edited.version).toBe('9.5.1');
     });
 
     describe('#follow()', () => {
