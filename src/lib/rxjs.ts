@@ -142,16 +142,14 @@ export function refresh<T extends Resource>():
  * @param edit the operation to edit the resource
  * @returns a function that transforms the source {@link Observable}
  */
-export function update<T extends Resource>(edit: (resource: T) => void):
+export function update<T extends Resource>(edit: (resource: Readonly<T>) => T):
     OperatorFunction<T | undefined, Accessor | undefined> {
     return pipe(
         switchMap(resource => {
             if (!resource)
                 return of(undefined);
 
-            edit(resource);
-
-            return resource.update();
+            return (edit(resource)).update();
         })
     );
 }

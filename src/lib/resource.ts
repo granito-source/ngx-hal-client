@@ -111,6 +111,10 @@ export class Resource extends HalBase {
         return obj && [this.instanceOf(type, obj)];
     }
 
+    protected clone(override: any = {}): this {
+        return this.constructor({ ...this, ...override });
+    }
+
     protected arrayOf<T extends Resource>(type: Type<T>,
         values: Object[]): T[] {
         return values.map(obj => this.instanceOf(type, obj));

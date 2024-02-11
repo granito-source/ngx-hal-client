@@ -2,9 +2,14 @@ import { createSpyObject } from '@ngneat/spectator/jest';
 import { cold } from 'jest-marbles';
 import { Accessor, Collection, Resource, completeWith, create, defined,
     follow, read, readCollection, refresh, del, update } from './internal';
+import { Observable } from 'rxjs';
 
 class TestResource extends Resource {
     id!: number;
+
+    edit(): TestResource {
+        throw new Error('fake implementation');
+    }
 }
 
 describe('completeWith()', () => {
@@ -293,18 +298,20 @@ describe('refresh()', () => {
 
 describe('update()', () => {
     it('maps undefined to undefined', () => {
-        const source = cold('--u-|', { u: undefined });
+        const source: Observable<TestResource | undefined> =
+            cold('--u-|', { u: undefined });
 
         expect(source.pipe(
-            update(x => x.id = 2)
+            update(x => x.edit())
         )).toBeObservable(cold('--u-|', { u: undefined }));
     });
 
     it('maps null to undefined', () => {
-        const source = cold('--n-|', { n: null });
+        const source: Observable<TestResource | undefined> =
+            cold('--n-|', { n: null });
 
         expect(source.pipe(
-            update(x => x.id = 2)
+            update(x => x.edit())
         )).toBeObservable(cold('--u-|', { u: undefined }));
     });
 
@@ -315,17 +322,20 @@ describe('update()', () => {
             }
         });
         const resource = createSpyObject(TestResource, { id: 1 });
-        const source = cold('--r----|', { r: resource });
+        const edited = createSpyObject(TestResource, { id: 2 });
+        const source: Observable<TestResource | undefined> =
+            cold('--r----|', { r: resource });
 
-        resource.update.andReturn(cold('--a|', { a: accessor }));
+        resource.edit.andReturn(edited);
+        edited.update.andReturn(cold('--a|', { a: accessor }));
 
         expect(source.pipe(
-            update(x => x.id = 2)
+            update(x => x.edit())
         )).toBeObservable(cold('----a--|', { a: accessor }));
         expect(source).toSatisfyOnFlush(() => {
-            expect(resource.id).toBe(2);
-            expect(resource.update).toHaveBeenCalledTimes(1);
-            expect(resource.update).toHaveBeenCalledWith();
+            expect(resource.update).not.toHaveBeenCalled();
+            expect(edited.update).toHaveBeenCalledTimes(1);
+            expect(edited.update).toHaveBeenCalledWith();
         });
     });
 });
