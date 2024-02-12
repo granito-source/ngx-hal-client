@@ -82,7 +82,10 @@ link to work with a collection of messages. When one executes `GET` on
                 "_links": {
                     "self": {
                         "href": "/api/v1/messages/0"
-                    }
+                    },
+                    "next": {
+                        "href": "/api/v1/messages/1"
+                    },
                 }
             },
             {
@@ -147,9 +150,13 @@ and
 import { Resource } from '@granito/ngx-hal-client';
 
 export class Message extends Resource {
-    id!: number;
+    readonly id!: number;
 
-    text!: string;
+    readonly text!: string;
+
+    withText(text: string): Message {
+        return this.clone({ text });
+    }
 }
 ```
 
@@ -197,7 +204,7 @@ export class MessageService {
 
     constructor(apiRootService: ApiRootService) {
         this.messages$ = apiRootService.apiRoot.pipe(
-            map(api => api.follow('messages'))
+            follow('messages')
         );
     }
 }
@@ -223,10 +230,8 @@ read the collection and access its elements.
     readFirst(): Observable<Message | undefined> {
         return this.messages$.pipe(
             take(1),
-            filter(isDefined),
-            switchMap(messages => messages.readCollection(Message)),
-            map(collection => collection.values[0]),
-            defaultIfEmpty(undefined)
+            readCollection(Message),
+            map(collection => collection?.values[0])
         );
     }
 ```
@@ -236,68 +241,72 @@ if it exists.
 
 #### Read resource
 
-Messages in the collection are also resources, and they may have their
-own links. You can read resources referenced by these links as shown
-below.
+Messages are resources, and they may have their own links. You can read resources referenced by these links as shown below.
 
 ```ts
-    readPrev(message: Message): Observable<Message | undefined> {
-        const accessor = message.follow('prev');
-
-        return !accessor ? of(undefined) : accessor.read(Message);
+    private current$: Observable<Message>;
+    ...
+    readNext(): Observable<Message> {
+        return this.current$.pipe(
+            take(1),
+            follow('next'),
+            read(Message)
+        );
     }
 ```
 
-The example shows how to access the previous message in the thread if
+The example shows how to access the next message in the thread if
 it exists.
 
 #### Refresh
 
-`Resource` class defines `read()` convenience method to execute
-a read operation on the resource using its `self` link. For example, here
+The library provides `refresh()` RxJS operator to execute a read
+operation on the resource using its `self` link. For example, here
 is how you can refresh the API root in `ApiRootService`.
 
 ```ts
     refresh(): void {
         this.apiRoot$.pipe(
             take(1),
-            switchMap(api => api.read())
+            refresh()
         ).subscribe(api => this.apiRoot$.next(api));
     }
 ```
 
 #### Create resource
 
-To create a new message, you can use `create()` method defined on
-`Accessor` or `Resource`.
+To create a new message, you can use `create()` operator.
 
 ```ts
     post(message: { text: string; }): Observable<Accessor | undefined> {
         return this.messages$.pipe(
             take(1),
-            filter(isDefined),
-            switchMap(messages => messages.create(message)),
-            defaultIfEmpty(undefined)
+            create(message)
         );
     }
 ```
 
 Two things are worth mentioning here. First, the object passed to
-`create()` method does not have to be a `Resource`. Second, if the
+`create()` operator does not have to be a `Resource`. Second, if the
 `POST` operation returns the URI for the newly created resource
 in the `Location` header, then the observable will emit an accessor
 for this resource. You can use it to read the resource immediately after
-it is created, e.g. by using `switchMap()`.
+it is created, e.g. by using `read()` operator.
 
 #### Update resource
 
-`Resource` instances can be updated in the API by using `update()` method.
+`Resource` instances can be updated in the API by using `update()`
+operator.
 
 ```ts
-    update(message: Message): Observable<Accessor> {
-        message.text = 'They call it "Le Royal Cheese".';
-
-        return message.update();
+    private current$: Observable<Message>;
+    ...
+    edit(text: string): Observable<Message> {
+        return this.current$.pipe(
+            take(1),
+            update(message => message.withText(text)),
+            read(Message)
+        );
     }
 ```
 
@@ -306,12 +315,17 @@ resource, which can be used to obtain a fresh copy of it from the API.
 
 #### Delete resource
 
-And finally, `Resource` and `Accessor` have `delete()` method allowing
-to delete the resource.
+And finally, resources and collections can be deleted using `del()`
+operator.
 
 ```ts
-    delete(message: Message): Observable<void> {
-        return message.delete();
+    private current$: Observable<Message>;
+    ...
+    deleteCurrent(): Observable<void> {
+        return this.current$.pipe(
+            take(1),
+            del()
+        );
     }
 ```
 

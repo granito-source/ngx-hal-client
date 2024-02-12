@@ -1,8 +1,6 @@
 import { Type } from '@angular/core';
 import { Observable, catchError, map } from 'rxjs';
-import { Collection } from './collection';
-import { HalBase } from './hal-base';
-import { Resource } from './resource';
+import { Collection, HalBase, Resource } from './internal';
 
 /**
  * This class provides a way to execute operations on HAL resources

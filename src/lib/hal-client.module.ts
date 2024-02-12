@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { HalClientService } from './hal-client.service';
+import { HalClientService } from './internal';
 
 /**
  * The Angular module for _Angular HAL Client_.

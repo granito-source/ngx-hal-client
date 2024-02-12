@@ -1,7 +1,6 @@
 import { Type } from '@angular/core';
 import { Observable, catchError, map } from 'rxjs';
-import { Resource } from './resource';
-import { Accessor } from './accessor';
+import { Accessor, Resource } from './internal';
 
 const next = 'next';
 
