@@ -82,7 +82,10 @@ link to work with a collection of messages. When one executes `GET` on
                 "_links": {
                     "self": {
                         "href": "/api/v1/messages/0"
-                    }
+                    },
+                    "next": {
+                        "href": "/api/v1/messages/1"
+                    },
                 }
             },
             {
@@ -147,9 +150,13 @@ and
 import { Resource } from '@granito/ngx-hal-client';
 
 export class Message extends Resource {
-    id!: number;
+    readonly id!: number;
 
-    text!: string;
+    readonly text!: string;
+
+    withText(text: string): Message {
+        return this.clone({ text });
+    }
 }
 ```
 
@@ -197,7 +204,7 @@ export class MessageService {
 
     constructor(apiRootService: ApiRootService) {
         this.messages$ = apiRootService.apiRoot.pipe(
-            map(api => api.follow('messages'))
+            follow('messages')
         );
     }
 }
@@ -206,22 +213,6 @@ export class MessageService {
 In the example above, `messages$` observable will emit either the
 accessor to the collection of messages or undefined if the API root
 does not have `messages` link.
-
-A shorter way to do the same is to use `follow()` RxJS operator
-provided by the library.
-
-```ts
-@Injectable({ providedIn: 'root' })
-export class MessageService {
-    private messages$: Observable<Accessor | undefined>;
-
-    constructor(apiRootService: ApiRootService) {
-        this.messages$ = apiRootService.apiRoot.pipe(
-            follow('messages')
-        );
-    }
-}
-```
 
 ### CRUD operations
 
@@ -239,10 +230,8 @@ read the collection and access its elements.
     readFirst(): Observable<Message | undefined> {
         return this.messages$.pipe(
             take(1),
-            defined(),
-            switchMap(messages => messages.readCollection(Message)),
-            map(collection => collection.values[0]),
-            defaultIfEmpty(undefined)
+            readCollection(Message),
+            map(collection => collection?.values[0])
         );
     }
 ```
@@ -250,52 +239,30 @@ read the collection and access its elements.
 The example above shows how to access the first message in the collection
 if it exists.
 
-To do the same with convenience RxJS `readCollection()` operator you
-write:
+#### Read resource
+
+Messages are resources, and they may have their own links. You can read resources referenced by these links as shown below.
 
 ```ts
-    readFirst(): Observable<Message | undefined> {
-        return this.messages$.pipe(
+    private current$: Observable<Message>;
+    ...
+    readNext(): Observable<Message> {
+        return this.current$.pipe(
             take(1),
-            readCollection(Message),
-            map(collection => collection?.values[0])
+            follow('next'),
+            read(Message)
         );
     }
 ```
 
-#### Read resource
-
-Messages in the collection are also resources, and they may have their
-own links. You can read resources referenced by these links as shown
-below.
-
-```ts
-    readPrev(message: Message): Observable<Message | undefined> {
-        const accessor = message.follow('prev');
-
-        return !accessor ? of(undefined) : accessor.read(Message);
-    }
-```
-
-The example shows how to access the previous message in the thread if
+The example shows how to access the next message in the thread if
 it exists.
 
 #### Refresh
 
-`Resource` class defines `read()` convenience method to execute
-a read operation on the resource using its `self` link. For example, here
+The library provides `refresh()` RxJS operator to execute a read
+operation on the resource using its `self` link. For example, here
 is how you can refresh the API root in `ApiRootService`.
-
-```ts
-    refresh(): void {
-        this.apiRoot$.pipe(
-            take(1),
-            switchMap(api => api.read())
-        ).subscribe(api => this.apiRoot$.next(api));
-    }
-```
-
-And here is how to implement the same with `refresh()` RxJS operator.
 
 ```ts
     refresh(): void {
@@ -308,28 +275,7 @@ And here is how to implement the same with `refresh()` RxJS operator.
 
 #### Create resource
 
-To create a new message, you can use `create()` method defined on
-`Accessor` or `Resource`.
-
-```ts
-    post(message: { text: string; }): Observable<Accessor | undefined> {
-        return this.messages$.pipe(
-            take(1),
-            defined(),
-            switchMap(messages => messages.create(message)),
-            defaultIfEmpty(undefined)
-        );
-    }
-```
-
-Two things are worth mentioning here. First, the object passed to
-`create()` method does not have to be a `Resource`. Second, if the
-`POST` operation returns the URI for the newly created resource
-in the `Location` header, then the observable will emit an accessor
-for this resource. You can use it to read the resource immediately after
-it is created, e.g. by using `switchMap()`.
-
-With RxJS `create()` operator it is done like this:
+To create a new message, you can use `create()` operator.
 
 ```ts
     post(message: { text: string; }): Observable<Accessor | undefined> {
@@ -340,9 +286,17 @@ With RxJS `create()` operator it is done like this:
     }
 ```
 
+Two things are worth mentioning here. First, the object passed to
+`create()` operator does not have to be a `Resource`. Second, if the
+`POST` operation returns the URI for the newly created resource
+in the `Location` header, then the observable will emit an accessor
+for this resource. You can use it to read the resource immediately after
+it is created, e.g. by using `read()` operator.
+
 #### Update resource
 
-`Resource` instances can be updated in the API by using `update()` method.
+`Resource` instances can be updated in the API by using `update()`
+operator.
 
 ```ts
     private current$: Observable<Message>;
@@ -350,11 +304,7 @@ With RxJS `create()` operator it is done like this:
     edit(text: string): Observable<Message> {
         return this.current$.pipe(
             take(1),
-            switchMap(message => {
-                message.text = text;
-
-                return message.update();
-            }),
+            update(message => message.withText(text)),
             read(Message)
         );
     }
@@ -363,37 +313,10 @@ With RxJS `create()` operator it is done like this:
 On successful completion the observable will emit an accessor for the
 resource, which can be used to obtain a fresh copy of it from the API.
 
-The same can be done using `update()` RxJS operator.
-
-```ts
-    private current$: Observable<Message>;
-    ...
-    edit(text: string): Observable<Message> {
-        return this.current$.pipe(
-            take(1),
-            update(message => message.text = text),
-            read(Message)
-        );
-    }
-```
-
 #### Delete resource
 
-And finally, `Resource` and `Accessor` have `delete()` method allowing
-to delete the resource.
-
-```ts
-    private current$: Observable<Message>;
-    ...
-    deleteCurrent(): Observable<void> {
-        return this.current$.pipe(
-            take(1),
-            switchMap(message => message.delete())
-        );
-    }
-```
-
-And here is the operator version:
+And finally, resources and collections can be deleted using `del()`
+operator.
 
 ```ts
     private current$: Observable<Message>;
