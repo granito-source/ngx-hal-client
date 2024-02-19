@@ -9,4 +9,3 @@ export * from './lib/collection';
 export * from './lib/utils';
 export * from './lib/rxjs';
 export * from './lib/hal-client.service';
-export * from './lib/hal-client.module';

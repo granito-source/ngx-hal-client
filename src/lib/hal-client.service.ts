@@ -7,7 +7,7 @@ import { Accessor } from './internal';
  * {@link HttpClient}, which will be passed to all {@link Accessor}
  * objects originating from this service, directly or indirectly.
  */
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class HalClientService {
     /**
      * @param httpClient Angular HTTP client

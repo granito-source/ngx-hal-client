@@ -1,8 +1,7 @@
 import { Type } from '@angular/core';
 import { Observable, OperatorFunction, filter, map, of, pipe, switchMap,
     takeUntil } from 'rxjs';
-import { Accessor, Collection, HalBase, Params, Resource,
-    isDefined } from './internal';
+import { Accessor, Collection, Params, Resource, isDefined } from './internal';
 
 /**
  * Returns an RxJS operator that makes the source {@link Observable}
@@ -53,7 +52,7 @@ export function follow(rel: string, params?: Params | undefined):
  * @returns a function that transforms the source {@link Observable}
  */
 export function create(obj: any):
-    OperatorFunction<HalBase | undefined, Accessor | undefined> {
+    OperatorFunction<Accessor | Resource | undefined, Accessor | undefined> {
     return pipe(
         switchMap(base => !base ? of(undefined) : base.create(obj))
     );
@@ -168,7 +167,8 @@ export function update<T extends Resource>(edit: (resource: Readonly<T>) => T):
  *
  * @returns a function that transforms the source {@link Observable}
  */
-export function del(): OperatorFunction<HalBase | undefined, void> {
+export function del():
+    OperatorFunction<Accessor | Resource | undefined, void> {
     return pipe(
         switchMap(base => !base ? of(undefined) : base.delete())
     );
