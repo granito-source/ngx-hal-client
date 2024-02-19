@@ -105,29 +105,25 @@ link to work with a collection of messages. When one executes `GET` on
 }
 ```
 
-### Import the module
+### Setup Angular HTTP Client
 
-First, you need to import `HalClientModule` module to the project.
-For most applications it should go to `app.module.ts`. You don't need
-to import `HttpClientModule` if you import `HalClientModule`.
+HAL Client uses Angular HTTP Client. You have to configure HTTP Client
+using dependency injection before HAL Client can be used. The modern
+way of doing it using `providers` in `app.config.ts` is shown below.
 
 ```ts
-import { NgModule } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { HalClientModule } from '@granito/ngx-hal-client';
-...
+import { provideHttpClient, withFetch } from '@angular/common/http';
 
-@NgModule({
-    imports: [
-        BrowserModule,
-        HalClientModule,
-        ...
-    ],
-    ...
-})
-export class AppModule {
-}
+export const appConfig: ApplicationConfig = {
+    providers: [
+        provideHttpClient(withFetch())
+    ]
+};
 ```
+
+For other ways please refer to
+[Setting up HttpClient](https://angular.dev/guide/http/setup) in
+the Angular documentation.
 
 ### Define resources
 
