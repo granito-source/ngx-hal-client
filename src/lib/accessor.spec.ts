@@ -1,4 +1,4 @@
-import { createHttpFactory, HttpMethod, SpectatorHttp } from '@ngneat/spectator/jest';
+import { createHttpFactory, HttpMethod, SpectatorHttp } from '@ngneat/spectator/vitest';
 import { Accessor, Collection, HalClientService, HalError, Resource } from './internal';
 
 class TestResource extends Resource {
@@ -101,7 +101,7 @@ describe('Accessor', () => {
             accessor.create(item).subscribe({
                 next: r => next = r,
                 complete: () => complete = true,
-                error: () => fail('no error is expected')
+                error: () => expect.fail('no error is expected')
             });
 
             const req = spectator.expectOne('/api/root', HttpMethod.POST);
@@ -126,7 +126,7 @@ describe('Accessor', () => {
             accessor.create([item, item]).subscribe({
                 next: r => next = r,
                 complete: () => complete = true,
-                error: () => fail('no error is expected')
+                error: () => expect.fail('no error is expected')
             });
 
             const req = spectator.expectOne('/api/root', HttpMethod.POST);
@@ -154,7 +154,7 @@ describe('Accessor', () => {
             accessor.create([0, 'zero', false, null, undefined]).subscribe({
                 next: r => next = r,
                 complete: () => complete = true,
-                error: () => fail('no error is expected')
+                error: () => expect.fail('no error is expected')
             });
 
             const req = spectator.expectOne('/api/root', HttpMethod.POST);
@@ -188,7 +188,7 @@ describe('Accessor', () => {
             accessor.create(collection).subscribe({
                 next: r => next = r,
                 complete: () => complete = true,
-                error: () => fail('no error is expected')
+                error: () => expect.fail('no error is expected')
             });
 
             const req = spectator.expectOne('/api/root', HttpMethod.POST);
@@ -217,7 +217,7 @@ describe('Accessor', () => {
             accessor.create(item).subscribe({
                 next: r => next = r,
                 complete: () => complete = true,
-                error: () => fail('no error is expected')
+                error: () => expect.fail('no error is expected')
             });
 
             const req = spectator.expectOne('/api/root', HttpMethod.POST);
@@ -236,8 +236,8 @@ describe('Accessor', () => {
             let error!: HalError;
 
             accessor.create(item).subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
                 error: err => error = err
             });
 
@@ -258,8 +258,8 @@ describe('Accessor', () => {
             let error!: HalError;
 
             accessor.create(item).subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
                 error: err => error = err
             });
 
@@ -360,7 +360,7 @@ describe('Accessor', () => {
             accessor.read(TestResource).subscribe({
                 next: r => next = r,
                 complete: () => complete = true,
-                error: () => fail('no error is expected')
+                error: () => expect.fail('no error is expected')
             });
 
             const req = spectator.expectOne('/api/root', HttpMethod.GET);
@@ -376,8 +376,8 @@ describe('Accessor', () => {
             let error!: HalError;
 
             accessor.read(TestResource).subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
                 error: err => error = err
             });
 
@@ -398,8 +398,8 @@ describe('Accessor', () => {
             let error!: HalError;
 
             accessor.read(TestResource).subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
                 error: err => error = err
             });
 
@@ -431,7 +431,7 @@ describe('Accessor', () => {
             accessor.readCollection(TestResource).subscribe({
                 next: r => next = r,
                 complete: () => complete = true,
-                error: () => fail('no error is expected')
+                error: () => expect.fail('no error is expected')
             });
 
             const req = spectator.expectOne('/api/root', HttpMethod.GET);
@@ -461,8 +461,8 @@ describe('Accessor', () => {
             let error!: HalError;
 
             accessor.readCollection(TestResource).subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
                 error: err => error = err
             });
 
@@ -483,8 +483,8 @@ describe('Accessor', () => {
             let error!: HalError;
 
             accessor.readCollection(TestResource).subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
                 error: err => error = err
             });
 
@@ -585,7 +585,7 @@ describe('Accessor', () => {
             accessor.delete().subscribe({
                 next: () => next = true,
                 complete: () => complete = true,
-                error: () => fail('no error is expected')
+                error: () => expect.fail('no error is expected')
             });
 
             const req = spectator.expectOne('/api/root', HttpMethod.DELETE);
@@ -603,8 +603,8 @@ describe('Accessor', () => {
             let error!: HalError;
 
             accessor.delete().subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
                 error: err => error = err
             });
 
@@ -625,8 +625,8 @@ describe('Accessor', () => {
             let error!: HalError;
 
             accessor.delete().subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
                 error: err => error = err
             });
 

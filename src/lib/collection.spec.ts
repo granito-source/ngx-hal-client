@@ -1,4 +1,4 @@
-import { createHttpFactory, HttpMethod, SpectatorHttp } from '@ngneat/spectator/jest';
+import { createHttpFactory, HttpMethod, SpectatorHttp } from '@ngneat/spectator/vitest';
 import { Accessor, Collection, HalClientService, HalError, Resource } from './internal';
 
 class TestResource extends Resource {
@@ -371,7 +371,7 @@ describe('Collection', () => {
             collection.create(item).subscribe({
                 next: r => next = r,
                 complete: () => complete = true,
-                error: () => fail('no error is expected')
+                error: () => expect.fail('no error is expected')
             });
 
             const req = spectator.expectOne('/api/test', HttpMethod.POST);
@@ -393,8 +393,8 @@ describe('Collection', () => {
             let error!: HalError;
 
             noSelf.create(item).subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
                 error: err => error = err
             });
 
@@ -410,8 +410,8 @@ describe('Collection', () => {
             let error!: HalError;
 
             noHref.create(item).subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
                 error: err => error = err
             });
 
@@ -430,7 +430,7 @@ describe('Collection', () => {
             collection.create([item, item]).subscribe({
                 next: r => next = r,
                 complete: () => complete = true,
-                error: () => fail('no error is expected')
+                error: () => expect.fail('no error is expected')
             });
 
             const req = spectator.expectOne('/api/test', HttpMethod.POST);
@@ -458,7 +458,7 @@ describe('Collection', () => {
             collection.create([0, 'zero', false, null, undefined]).subscribe({
                 next: r => next = r,
                 complete: () => complete = true,
-                error: () => fail('no error is expected')
+                error: () => expect.fail('no error is expected')
             });
 
             const req = spectator.expectOne('/api/test', HttpMethod.POST);
@@ -492,7 +492,7 @@ describe('Collection', () => {
             collection.create(newCollection).subscribe({
                 next: r => next = r,
                 complete: () => complete = true,
-                error: () => fail('no error is expected')
+                error: () => expect.fail('no error is expected')
             });
 
             const req = spectator.expectOne('/api/test', HttpMethod.POST);
@@ -521,7 +521,7 @@ describe('Collection', () => {
             collection.create(item).subscribe({
                 next: r => next = r,
                 complete: () => complete = true,
-                error: () => fail('no error is expected')
+                error: () => expect.fail('no error is expected')
             });
 
             const req = spectator.expectOne('/api/test', HttpMethod.POST);
@@ -540,8 +540,8 @@ describe('Collection', () => {
             let error!: HalError;
 
             collection.create(item).subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
                 error: err => error = err
             });
 
@@ -562,8 +562,8 @@ describe('Collection', () => {
             let error!: HalError;
 
             collection.create(item).subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
                 error: err => error = err
             });
 
@@ -664,7 +664,7 @@ describe('Collection', () => {
             collection.read().subscribe({
                 next: r => next = r,
                 complete: () => complete = true,
-                error: () => fail('no error is expected')
+                error: () => expect.fail('no error is expected')
             });
 
             const req = spectator.expectOne('/api/test', HttpMethod.GET);
@@ -690,8 +690,8 @@ describe('Collection', () => {
             let error!: HalError;
 
             noSelf.read().subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
                 error: err => error = err
             });
 
@@ -707,8 +707,8 @@ describe('Collection', () => {
             let error!: HalError;
 
             noHref.read().subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
                 error: err => error = err
             });
 
@@ -724,8 +724,8 @@ describe('Collection', () => {
             let error!: HalError;
 
             collection.read().subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
                 error: err => error = err
             });
 
@@ -746,8 +746,8 @@ describe('Collection', () => {
             let error!: HalError;
 
             collection.read().subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
                 error: err => error = err
             });
 
@@ -849,7 +849,7 @@ describe('Collection', () => {
             collection.update().subscribe({
                 next: r => next = r,
                 complete: () => complete = true,
-                error: () => fail('no error is expected')
+                error: () => expect.fail('no error is expected')
             });
 
             const req = spectator.expectOne('/api/test', HttpMethod.PUT);
@@ -871,8 +871,8 @@ describe('Collection', () => {
             let error!: HalError;
 
             noSelf.update().subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
                 error: err => error = err
             });
 
@@ -888,8 +888,8 @@ describe('Collection', () => {
             let error!: HalError;
 
             noHref.update().subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
                 error: err => error = err
             });
 
@@ -905,8 +905,8 @@ describe('Collection', () => {
             let error!: HalError;
 
             collection.update().subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
                 error: err => error = err
             });
 
@@ -927,8 +927,8 @@ describe('Collection', () => {
             let error!: HalError;
 
             collection.update().subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
                 error: err => error = err
             });
 
@@ -1029,7 +1029,7 @@ describe('Collection', () => {
             collection.delete().subscribe({
                 next: () => next = true,
                 complete: () => complete = true,
-                error: () => fail('no error is expected')
+                error: () => expect.fail('no error is expected')
             });
 
             const req = spectator.expectOne('/api/test', HttpMethod.DELETE);
@@ -1047,8 +1047,8 @@ describe('Collection', () => {
             let error!: HalError;
 
             noSelf.delete().subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
                 error: err => error = err
             });
 
@@ -1064,8 +1064,8 @@ describe('Collection', () => {
             let error!: HalError;
 
             noHref.delete().subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
                 error: err => error = err
             });
 
@@ -1081,8 +1081,8 @@ describe('Collection', () => {
             let error!: HalError;
 
             collection.delete().subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
                 error: err => error = err
             });
 
@@ -1103,8 +1103,8 @@ describe('Collection', () => {
             let error!: HalError;
 
             collection.delete().subscribe({
-                next: () => fail('no next is expected'),
-                complete: () => fail('no complete is expected'),
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
                 error: err => error = err
             });
 

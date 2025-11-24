@@ -1,8 +1,8 @@
-import { createSpyObject } from '@ngneat/spectator/jest';
-import { cold } from 'jest-marbles';
+import { createSpyObject } from '@ngneat/spectator/vitest';
 import { Accessor, Collection, Resource, completeWith, create, defined,
     follow, read, readCollection, refresh, del, update } from './internal';
 import { Observable } from 'rxjs';
+import { cold } from "@granito/vitest-marbles";
 
 class TestResource extends Resource {
     id!: number;
