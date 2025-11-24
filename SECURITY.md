@@ -19,7 +19,6 @@ will be supported for security updates as well as the upcoming major release
 
 ## Reporting a Vulnerability
 
-In order to report a vulnerability, please navigate to the
-[Security](https://github.com/granito-source/ngx-hal-client/security) of this
-repository and use _Report vulnerability_ button to disclose your findings
-privately.
+In order to report a vulnerability, please
+[open a draft security advisory](https://github.com/granito-source/ngx-hal-client/security/advisories/new)
+to disclose your findings privately.
