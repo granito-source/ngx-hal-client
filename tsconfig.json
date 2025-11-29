@@ -10,7 +10,6 @@
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "skipLibCheck": true,
     "sourceMap": true,
     "paths": {
       "@granito/ngx-hal-client": [
@@ -19,14 +18,9 @@
     },
     "declaration": false,
     "experimentalDecorators": true,
-    "moduleResolution": "bundler",
     "importHelpers": true,
     "target": "ES2022",
-    "module": "ES2022",
-    "lib": [
-      "DOM",
-      "ESNext"
-    ],
+    "module": "preserve",
     "useDefineForClassFields": false
   },
   "angularCompilerOptions": {

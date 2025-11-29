@@ -7,6 +7,9 @@
     "inlineSources": true,
     "types": []
   },
+  "files": [
+    "src/public-api.ts"
+  ],
   "exclude": [
     "**/*.spec.ts"
   ]

@@ -5,7 +5,7 @@
   "entryPoints": [
     "./src/public-api.ts"
   ],
-  "excludeExternals": false,
+  "excludeExternals": true,
   "excludeInternal": true,
   "excludePrivate": true,
   "excludeProtected": true,
@@ -14,5 +14,18 @@
     "inherited": true,
     "external": true
   },
+  "externalSymbolLinkMappings": {
+    "typescript": {
+      "Array": "#",
+      "Object": "#"
+    },
+    "rxjs": {
+      "Observable": "#"
+    },
+    "@angular/common": {
+      "HttpClient": "#"
+    }
+  },
+  "tsconfig": "./tsconfig.lib.json",
   "out": "build/typedoc"
 }
