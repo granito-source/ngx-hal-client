@@ -307,7 +307,7 @@ describe('update()', () => {
     });
 
     it('maps null to undefined', () => {
-        const source: Observable<TestResource | undefined> =
+        const source: Observable<TestResource | null> =
             cold('--n-|', { n: null });
 
         expect(source.pipe(

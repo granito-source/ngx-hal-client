@@ -52,7 +52,7 @@ export function follow(rel: string, params?: Params | undefined):
  * @returns a function that transforms the source {@link Observable}
  */
 export function create(obj: any):
-    OperatorFunction<Accessor | Resource | undefined, Accessor | undefined> {
+    OperatorFunction<Accessor | Resource | undefined | null, Accessor | undefined> {
     return pipe(
         switchMap(base => !base ? of(undefined) : base.create(obj))
     );
@@ -142,7 +142,7 @@ export function refresh<T extends Resource>():
  * @returns a function that transforms the source {@link Observable}
  */
 export function update<T extends Resource>(edit: (resource: Readonly<T>) => T):
-    OperatorFunction<T | undefined, Accessor | undefined> {
+    OperatorFunction<T | undefined | null, Accessor | undefined> {
     return pipe(
         switchMap(resource => {
             if (!resource)
@@ -168,7 +168,7 @@ export function update<T extends Resource>(edit: (resource: Readonly<T>) => T):
  * @returns a function that transforms the source {@link Observable}
  */
 export function del():
-    OperatorFunction<Accessor | Resource | undefined, void> {
+    OperatorFunction<Accessor | Resource | undefined | null, void> {
     return pipe(
         switchMap(base => !base ? of(undefined) : base.delete())
     );
