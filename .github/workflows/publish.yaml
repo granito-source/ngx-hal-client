@@ -25,4 +25,4 @@ jobs:
       - name: Test
         run: npm test
       - name: Publish
-        run: npm publish build/dist/ --access public
+        run: npm publish ./build/dist

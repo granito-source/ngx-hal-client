@@ -23,6 +23,10 @@
     "clean": "rm -rf .angular node_modules build"
   },
   "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "tag": "latest"
+  },
   "peerDependencies": {
     "@angular/common": ">=17",
     "@angular/core": ">=17",
