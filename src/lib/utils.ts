@@ -1,8 +1,7 @@
-import { Collection, Resource } from './internal';
+import { Collection } from './internal';
 
 /**
- * Convert any item, be that a {@link Resource} or {@link Collection}
- * to a plain {@link Object} or {@link Array}. On conversion
+ * Convert any item to {@link Object} or {@link Array}. On conversion
  * HAL-related properties (`_client`, `_links`, `_embedded`)
  * are not included in the resulting object. Primitive types
  * as well as `null` or `undefined` are returned unchanged.

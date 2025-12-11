@@ -1,4 +1,4 @@
-[![Build](https://github.com/granito-source/ngx-hal-client/actions/workflows/npm-build.yaml/badge.svg)](https://github.com/granito-source/ngx-hal-client/actions/workflows/npm-build.yaml)
+[![Build](https://github.com/granito-source/ngx-hal-client/actions/workflows/build.yaml/badge.svg)](https://github.com/granito-source/ngx-hal-client/actions/workflows/build.yaml)
 [![Latest Version](https://img.shields.io/npm/v/%40granito%2Fngx-hal-client.svg)](https://npm.im/@granito/ngx-hal-client)
 
 This is a
