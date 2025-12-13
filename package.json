@@ -37,16 +37,16 @@
     "tslib": "^2.3.0"
   },
   "devDependencies": {
-    "@angular/build": "^21.0.0",
-    "@angular/cli": "^21.0.0",
-    "@angular/compiler-cli": "^21.0.0",
-    "@angular/platform-browser-dynamic": "^21.0.0",
-    "@granito/vitest-marbles": "^1.0.0-dev",
+    "@angular/build": "^21.0.3",
+    "@angular/cli": "^21.0.3",
+    "@angular/compiler-cli": "^21.0.5",
+    "@angular/platform-browser-dynamic": "^21.0.5",
+    "@granito/vitest-marbles": "^1.0.0",
     "@ngneat/spectator": "^22.1.0",
-    "jsdom": "^27.2.0",
+    "jsdom": "^27.3.0",
     "ng-packagr": "^21.0.0",
     "typedoc": "^0.28.15",
     "typescript": "~5.9.3",
-    "vitest": "^4.0.13"
+    "vitest": "^4.0.15"
   }
 }
