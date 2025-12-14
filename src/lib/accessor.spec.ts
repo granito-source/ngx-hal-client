@@ -1,41 +1,41 @@
 import { createHttpFactory, createSpyObject, HttpMethod,
     SpectatorHttp } from '@ngneat/spectator/vitest';
-import { Accessor, Collection, HAL_ROOT, HalClientService, HalError,
-    provideHalRoot, Resource } from './internal';
-import { EnvironmentProviders, FactoryProvider, Provider } from "@angular/core";
+import { Accessor, Collection, HAL_ROOT, HalError, provideHalRoot,
+    Resource } from './internal';
+import { EnvironmentProviders, FactoryProvider, Injectable,
+    Provider } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 
+@Injectable()
+class TestService {
+}
+
 class TestResource extends Resource {
-    version!: string;
+    declare version: string;
 }
 
 describe('Accessor', () => {
-    const createService = createHttpFactory({
-        service: HalClientService
-    });
-    let spectator: SpectatorHttp<HalClientService>;
+    const createService = createHttpFactory({ service: TestService });
+    let spectator: SpectatorHttp<TestService>;
     let accessor: Accessor;
 
     beforeEach(() => {
         spectator = createService();
-        accessor = spectator.service.root('/api/root');
+        accessor = new Accessor({
+            _client: spectator.httpClient,
+            _links: {
+                self: { href: '/api/root' }
+            }
+        });
     });
 
-    it('gets initially created from HalClientService#root()', () => {
-        expect(accessor).toBeDefined();
+    it('exposes self link', () => {
         expect(accessor.self).toBe('/api/root');
     });
 
     describe('#canCreate', () => {
         it('is true when no methods array', () => {
-            const noMethods = new Accessor({
-                _client: spectator.httpClient,
-                _links: {
-                    self: { href: '/api/v1/items' }
-                }
-            });
-
-            expect(noMethods.canCreate).toBe(true);
+            expect(accessor.canCreate).toBe(true);
         });
 
         it('is true when methods is not an array', () => {
@@ -289,14 +289,7 @@ describe('Accessor', () => {
 
     describe('#canRead', () => {
         it('is true when no methods array', () => {
-            const noMethods = new Accessor({
-                _client: spectator.httpClient,
-                _links: {
-                    self: { href: '/api/v1/items' }
-                }
-            });
-
-            expect(noMethods.canRead).toBe(true);
+            expect(accessor.canRead).toBe(true);
         });
 
         it('is true when methods is not an array', () => {
@@ -314,7 +307,7 @@ describe('Accessor', () => {
         });
 
         it('is false when no GET in methods array', () => {
-            const noPost = new Accessor({
+            const noGet = new Accessor({
                 _client: spectator.httpClient,
                 _links: {
                     self: {
@@ -324,11 +317,11 @@ describe('Accessor', () => {
                 }
             });
 
-            expect(noPost.canRead).toBe(false);
+            expect(noGet.canRead).toBe(false);
         });
 
         it('is true when GET is in methods array', () => {
-            const withPost = new Accessor({
+            const withGet = new Accessor({
                 _client: spectator.httpClient,
                 _links: {
                     self: {
@@ -338,11 +331,11 @@ describe('Accessor', () => {
                 }
             });
 
-            expect(withPost.canRead).toBe(true);
+            expect(withGet.canRead).toBe(true);
         });
 
         it('is true when GET matches case insensitively', () => {
-            const withPost = new Accessor({
+            const withGet = new Accessor({
                 _client: spectator.httpClient,
                 _links: {
                     self: {
@@ -352,7 +345,7 @@ describe('Accessor', () => {
                 }
             });
 
-            expect(withPost.canRead).toBe(true);
+            expect(withGet.canRead).toBe(true);
         });
     });
 
@@ -514,14 +507,7 @@ describe('Accessor', () => {
 
     describe('#canDelete', () => {
         it('is true when no methods array', () => {
-            const noMethods = new Accessor({
-                _client: spectator.httpClient,
-                _links: {
-                    self: { href: '/api/v1/items' }
-                }
-            });
-
-            expect(noMethods.canDelete).toBe(true);
+            expect(accessor.canDelete).toBe(true);
         });
 
         it('is true when methods is not an array', () => {
@@ -539,7 +525,7 @@ describe('Accessor', () => {
         });
 
         it('is false when no DELETE in methods array', () => {
-            const noPost = new Accessor({
+            const noDelete = new Accessor({
                 _client: spectator.httpClient,
                 _links: {
                     self: {
@@ -549,11 +535,11 @@ describe('Accessor', () => {
                 }
             });
 
-            expect(noPost.canDelete).toBe(false);
+            expect(noDelete.canDelete).toBe(false);
         });
 
         it('is true when DELETE is in methods array', () => {
-            const withPost = new Accessor({
+            const withDelete = new Accessor({
                 _client: spectator.httpClient,
                 _links: {
                     self: {
@@ -563,11 +549,11 @@ describe('Accessor', () => {
                 }
             });
 
-            expect(withPost.canDelete).toBe(true);
+            expect(withDelete.canDelete).toBe(true);
         });
 
         it('is true when DELETE matches case insensitively', () => {
-            const withPost = new Accessor({
+            const withDelete = new Accessor({
                 _client: spectator.httpClient,
                 _links: {
                     self: {
@@ -577,7 +563,7 @@ describe('Accessor', () => {
                 }
             });
 
-            expect(withPost.canDelete).toBe(true);
+            expect(withDelete.canDelete).toBe(true);
         });
     });
 

@@ -106,25 +106,25 @@ link to work with a collection of messages. When one executes `GET` on
 }
 ```
 
-### Setup Angular HTTP Client
+### Configure HAL Client
 
 HAL Client uses Angular HTTP Client. You have to configure HTTP Client
 using dependency injection before HAL Client can be used. The modern
 way of doing it using `providers` in `app.config.ts` is shown below.
+The HAL Client is configured by calling `provideHalRoot()` function
+with the URI of the root entry point.
 
 ```ts
-import { provideHttpClient, withFetch } from '@angular/common/http';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHalRoot } from "@granito/ngx-hal-client";
 
 export const appConfig: ApplicationConfig = {
     providers: [
-        provideHttpClient(withFetch())
+        provideHttpClient(),
+        provideHalRoot('/api/v1')
     ]
 };
 ```
-
-For other ways please refer to
-[Setting up HttpClient](https://angular.dev/guide/http/setup) in
-the Angular documentation.
 
 ### Define resources
 
@@ -137,7 +137,7 @@ you can just use `Resource`. Otherwise, like in our sample API, extend
 import { Resource } from '@granito/ngx-hal-client';
 
 export class ApiRoot extends Resource {
-    readonly apiVersion!: string;
+    declare apiVersion: string;
 }
 ```
 
@@ -147,9 +147,9 @@ and
 import { Resource } from '@granito/ngx-hal-client';
 
 export class Message extends Resource {
-    readonly id!: number;
+    declare id: number;
 
-    readonly text!: string;
+    declare text: string;
 
     withText(text: string): Message {
         return this.clone({ text });
@@ -161,15 +161,15 @@ Collections are represented by `Collection` resource.
 
 ### Read the root resource
 
-HAL Client defines `Accessor` object to give access to HAL resources.
+HAL Client uses `Accessor` object to give access to HAL resources.
 In order to access the root entry point of the API, you need to get
-its accessor first using `HalClientService` and then read the API root
-resource. Normally you would keep the root entry point of the API as
-your application's state, e.g. in a `ReplaySubject`.
+its accessor first using `HAL_ROOT` injection token and then read
+the API root resource. Normally you would keep the root entry point
+of the API as your application's state, e.g. in a `ReplaySubject`.
 
 ```ts
-import { Injectable } from '@angular/core';
-import { HalClientService } from '@granito/ngx-hal-client';
+import { Inject, Injectable } from '@angular/core';
+import { Accessor, HAL_ROOT } from '@granito/ngx-hal-client';
 import { Observable, ReplaySubject } from 'rxjs';
 import { ApiRoot } from './api-root';
 
@@ -181,9 +181,9 @@ export class ApiRootService {
         return this.apiRoot$.asObservable();
     }
 
-    constructor(client: HalClientService) {
-        client.root('/api/v1').read(ApiRoot).subscribe(
-            api => this.apiRoot$.next(api));
+    constructor(@Inject(HAL_ROOT) private readonly halRoot: Accessor) {
+        this.halRoot.read(ApiRoot)
+            .subscribe(api => this.apiRoot$.next(api));
     }
 }
 ```

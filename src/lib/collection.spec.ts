@@ -1,15 +1,19 @@
-import { createHttpFactory, HttpMethod, SpectatorHttp } from '@ngneat/spectator/vitest';
-import { Accessor, Collection, HalClientService, HalError, Resource } from './internal';
+import { createHttpFactory, HttpMethod,
+    SpectatorHttp } from '@ngneat/spectator/vitest';
+import { Accessor, Collection, HalError, Resource } from './internal';
+import { Injectable } from "@angular/core";
+
+@Injectable()
+class TestService {
+}
 
 class TestResource extends Resource {
-    version!: string;
+    declare version: string;
 }
 
 describe('Collection', () => {
-    const createService = createHttpFactory({
-        service: HalClientService
-    });
-    let spectator: SpectatorHttp<HalClientService>;
+    const createService = createHttpFactory({ service: TestService });
+    let spectator: SpectatorHttp<TestService>;
     let collection: Collection<TestResource>;
     let noSelf: Collection<TestResource>;
     let noHref: Collection<TestResource>;
@@ -81,8 +85,7 @@ describe('Collection', () => {
         });
     });
 
-    it('gets created', () => {
-        expect(collection).toBeDefined();
+    it('exposes self link', () => {
         expect(collection.self).toBe('/api/test');
     });
 
@@ -294,14 +297,7 @@ describe('Collection', () => {
 
     describe('#canCreate', () => {
         it('is true when no methods array', () => {
-            const noMethods = new Collection(TestResource, {
-                _client: spectator.httpClient,
-                _links: {
-                    self: { href: '/api/v1/items' }
-                }
-            });
-
-            expect(noMethods.canCreate).toBe(true);
+            expect(collection.canCreate).toBe(true);
         });
 
         it('is true when methods is not an array', () => {
@@ -589,14 +585,7 @@ describe('Collection', () => {
 
     describe('#canRead', () => {
         it('is true when no methods array', () => {
-            const noMethods = new Collection(TestResource, {
-                _client: spectator.httpClient,
-                _links: {
-                    self: { href: '/api/v1/items' }
-                }
-            });
-
-            expect(noMethods.canRead).toBe(true);
+            expect(collection.canRead).toBe(true);
         });
 
         it('is true when methods is not an array', () => {
@@ -614,7 +603,7 @@ describe('Collection', () => {
         });
 
         it('is false when no GET in methods array', () => {
-            const noPost = new Collection(TestResource, {
+            const noGet = new Collection(TestResource, {
                 _client: spectator.httpClient,
                 _links: {
                     self: {
@@ -624,11 +613,11 @@ describe('Collection', () => {
                 }
             });
 
-            expect(noPost.canRead).toBe(false);
+            expect(noGet.canRead).toBe(false);
         });
 
         it('is true when GET is in methods array', () => {
-            const withPost = new Collection(TestResource, {
+            const withGet = new Collection(TestResource, {
                 _client: spectator.httpClient,
                 _links: {
                     self: {
@@ -638,11 +627,11 @@ describe('Collection', () => {
                 }
             });
 
-            expect(withPost.canRead).toBe(true);
+            expect(withGet.canRead).toBe(true);
         });
 
         it('is true when GET matches case insensitively', () => {
-            const withPost = new Collection(TestResource, {
+            const withGet = new Collection(TestResource, {
                 _client: spectator.httpClient,
                 _links: {
                     self: {
@@ -652,7 +641,7 @@ describe('Collection', () => {
                 }
             });
 
-            expect(withPost.canRead).toBe(true);
+            expect(withGet.canRead).toBe(true);
         });
     });
 
@@ -773,14 +762,7 @@ describe('Collection', () => {
 
     describe('#canUpdate', () => {
         it('is true when no methods array', () => {
-            const noMethods = new Collection(TestResource, {
-                _client: spectator.httpClient,
-                _links: {
-                    self: { href: '/api/v1/items' }
-                }
-            });
-
-            expect(noMethods.canUpdate).toBe(true);
+            expect(collection.canUpdate).toBe(true);
         });
 
         it('is true when methods is not an array', () => {
@@ -798,7 +780,7 @@ describe('Collection', () => {
         });
 
         it('is false when no PUT in methods array', () => {
-            const noPost = new Collection(TestResource, {
+            const noPut = new Collection(TestResource, {
                 _client: spectator.httpClient,
                 _links: {
                     self: {
@@ -808,11 +790,11 @@ describe('Collection', () => {
                 }
             });
 
-            expect(noPost.canUpdate).toBe(false);
+            expect(noPut.canUpdate).toBe(false);
         });
 
         it('is true when PUT is in methods array', () => {
-            const withPost = new Collection(TestResource, {
+            const withPut = new Collection(TestResource, {
                 _client: spectator.httpClient,
                 _links: {
                     self: {
@@ -822,11 +804,11 @@ describe('Collection', () => {
                 }
             });
 
-            expect(withPost.canUpdate).toBe(true);
+            expect(withPut.canUpdate).toBe(true);
         });
 
         it('is true when PUT matches case insensitively', () => {
-            const withPost = new Collection(TestResource, {
+            const withPut = new Collection(TestResource, {
                 _client: spectator.httpClient,
                 _links: {
                     self: {
@@ -836,7 +818,7 @@ describe('Collection', () => {
                 }
             });
 
-            expect(withPost.canUpdate).toBe(true);
+            expect(withPut.canUpdate).toBe(true);
         });
     });
 
@@ -954,14 +936,7 @@ describe('Collection', () => {
 
     describe('#canDelete', () => {
         it('is true when no methods array', () => {
-            const noMethods = new Collection(TestResource, {
-                _client: spectator.httpClient,
-                _links: {
-                    self: { href: '/api/v1/items' }
-                }
-            });
-
-            expect(noMethods.canDelete).toBe(true);
+            expect(collection.canDelete).toBe(true);
         });
 
         it('is true when methods is not an array', () => {
@@ -979,7 +954,7 @@ describe('Collection', () => {
         });
 
         it('is false when no DELETE in methods array', () => {
-            const noPost = new Collection(TestResource, {
+            const noDelete = new Collection(TestResource, {
                 _client: spectator.httpClient,
                 _links: {
                     self: {
@@ -989,11 +964,11 @@ describe('Collection', () => {
                 }
             });
 
-            expect(noPost.canDelete).toBe(false);
+            expect(noDelete.canDelete).toBe(false);
         });
 
         it('is true when DELETE is in methods array', () => {
-            const withPost = new Collection(TestResource, {
+            const withDelete = new Collection(TestResource, {
                 _client: spectator.httpClient,
                 _links: {
                     self: {
@@ -1003,11 +978,11 @@ describe('Collection', () => {
                 }
             });
 
-            expect(withPost.canDelete).toBe(true);
+            expect(withDelete.canDelete).toBe(true);
         });
 
         it('is true when DELETE matches case insensitively', () => {
-            const withPost = new Collection(TestResource, {
+            const withDelete = new Collection(TestResource, {
                 _client: spectator.httpClient,
                 _links: {
                     self: {
@@ -1017,7 +992,7 @@ describe('Collection', () => {
                 }
             });
 
-            expect(withPost.canDelete).toBe(true);
+            expect(withDelete.canDelete).toBe(true);
         });
     });
 

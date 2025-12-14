@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { cold } from "@granito/vitest-marbles";
 
 class TestResource extends Resource {
-    id!: number;
+    declare id: number;
 
     edit(): TestResource {
         throw new Error('fake implementation');
