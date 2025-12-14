@@ -1,5 +1,9 @@
-import { createHttpFactory, HttpMethod, SpectatorHttp } from '@ngneat/spectator/vitest';
-import { Accessor, Collection, HalClientService, HalError, Resource } from './internal';
+import { createHttpFactory, createSpyObject, HttpMethod,
+    SpectatorHttp } from '@ngneat/spectator/vitest';
+import { Accessor, Collection, HAL_ROOT, HalClientService, HalError,
+    provideHalRoot, Resource } from './internal';
+import { EnvironmentProviders, FactoryProvider, Provider } from "@angular/core";
+import { HttpClient } from "@angular/common/http";
 
 class TestResource extends Resource {
     version!: string;
@@ -650,3 +654,30 @@ describe('Accessor', () => {
         });
     });
 });
+
+describe('provideHalRoot()', () => {
+    it('returns factory provider for HAL_ROOT', () => {
+        const providers = unwrap(provideHalRoot('/api/root'));
+
+        expect(providers).toHaveLength(1);
+
+        const provider = providers[0] as FactoryProvider;
+
+        expect(provider.provide).toBe(HAL_ROOT);
+        expect(provider.deps).toEqual([HttpClient]);
+        expect(provider.useFactory).toBeInstanceOf(Function);
+
+        const root = provider.useFactory(createSpyObject(HttpClient));
+
+        expect(root).toBeInstanceOf(Accessor);
+        expect(root.self).toBe('/api/root');
+    });
+});
+
+function unwrap(providers: EnvironmentProviders): Provider[] {
+    // noinspection JSNonASCIINames,NonAsciiCharacters
+    return (providers as unknown as {
+        // noinspection JSNonASCIINames,NonAsciiCharacters
+        ɵproviders: Provider[]
+    }).ɵproviders;
+}

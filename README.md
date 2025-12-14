@@ -1,5 +1,6 @@
 [![Build](https://github.com/granito-source/ngx-hal-client/actions/workflows/build.yaml/badge.svg)](https://github.com/granito-source/ngx-hal-client/actions/workflows/build.yaml)
 [![Latest Version](https://img.shields.io/npm/v/%40granito%2Fngx-hal-client.svg)](https://npm.im/@granito/ngx-hal-client)
+[![License](https://img.shields.io/github/license/granito-source/ngx-hal-client?color=blue)](https://github.com/granito-source/ngx-hal-client/blob/main/LICENSE)
 
 This is a
 [Hypertext Application Language](https://en.wikipedia.org/wiki/Hypertext_Application_Language)

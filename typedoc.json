@@ -27,5 +27,5 @@
     }
   },
   "tsconfig": "./tsconfig.lib.json",
-  "out": "build/typedoc"
+  "out": "./build/typedoc"
 }

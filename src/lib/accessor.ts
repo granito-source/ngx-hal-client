@@ -1,6 +1,8 @@
-import { Type } from '@angular/core';
-import { Observable, catchError, map } from 'rxjs';
+import { EnvironmentProviders, InjectionToken, makeEnvironmentProviders,
+    Type } from '@angular/core';
+import { catchError, map, Observable } from 'rxjs';
 import { Collection, HalBase, Resource } from './internal';
+import { HttpClient } from "@angular/common/http";
 
 /**
  * This class provides a way to execute operations on HAL resources
@@ -37,4 +39,31 @@ export class Accessor extends HalBase {
             catchError(this.handleError)
         );
     }
+}
+
+/**
+ * The injection token for HAL root URL.
+ */
+export const HAL_ROOT = new InjectionToken<Accessor>('hal.root');
+
+/**
+ * Configure HAL client using the provided the root URL for the API.
+ *
+ * @param url the root URL
+ * @return an array of environment providers with a single factory
+ * provider for the {@link Accessor} for the API root
+ */
+export function provideHalRoot(url: string): EnvironmentProviders {
+    return makeEnvironmentProviders([
+        {
+            provide: HAL_ROOT,
+            deps: [HttpClient],
+            useFactory: (httpClient: HttpClient) => new Accessor({
+                _client: httpClient,
+                _links: {
+                    self: { href: url }
+                }
+            })
+        }
+    ]);
 }

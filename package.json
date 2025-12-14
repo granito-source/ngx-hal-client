@@ -18,7 +18,7 @@
   },
   "scripts": {
     "build": "ng build",
-    "test": "ng test --no-watch",
+    "test": "ng test",
     "typedoc": "typedoc",
     "clean": "rm -rf .angular node_modules build"
   },
@@ -28,8 +28,8 @@
     "tag": "latest"
   },
   "peerDependencies": {
-    "@angular/common": ">=17",
-    "@angular/core": ">=17",
+    "@angular/common": ">=18",
+    "@angular/core": ">=18",
     "rxjs": "^7.8.2",
     "uri-template": "^2.0.0"
   },
@@ -43,6 +43,7 @@
     "@angular/platform-browser-dynamic": "^21.0.5",
     "@granito/vitest-marbles": "^1.0.0",
     "@ngneat/spectator": "^22.1.0",
+    "@vitest/coverage-v8": "^4.0.15",
     "jsdom": "^27.3.0",
     "ng-packagr": "^21.0.0",
     "typedoc": "^0.28.15",
