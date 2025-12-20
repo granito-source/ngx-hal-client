@@ -43,7 +43,7 @@ describe('objectFrom()', () => {
             null,
             true,
             42,
-            'fourty-two',
+            'forty-two',
             {
                 _client: {},
                 _links: {},
@@ -56,7 +56,7 @@ describe('objectFrom()', () => {
             null,
             true,
             42,
-            'fourty-two',
+            'forty-two',
             {
                 id: 1,
                 text: 'One'
@@ -118,16 +118,16 @@ describe('isDefined()', () => {
 
     it('returns true when string', () => {
         expect(isDefined('')).toBe(true);
-        expect(isDefined('fourty-two')).toBe(true);
+        expect(isDefined('forty-two')).toBe(true);
     });
 
     it('returns true when Object', () => {
         expect(isDefined({})).toBe(true);
-        expect(isDefined({ answer: 'fourty-two' })).toBe(true);
+        expect(isDefined({ answer: 'forty-two' })).toBe(true);
     });
 
     it('returns true when Array', () => {
         expect(isDefined([])).toBe(true);
-        expect(isDefined(['fourty-two'])).toBe(true);
+        expect(isDefined(['forty-two'])).toBe(true);
     });
 });
