@@ -1,7 +1,7 @@
 import { Type } from '@angular/core';
-import { Observable, OperatorFunction, filter, map, of, pipe, switchMap,
+import { filter, map, Observable, of, OperatorFunction, pipe, switchMap,
     takeUntil } from 'rxjs';
-import { Accessor, Collection, Params, Resource, isDefined } from './internal';
+import { Accessor, Collection, isDefined, Params, Resource } from './internal';
 
 /**
  * Returns an RxJS operator that makes the source {@link Observable}
@@ -126,12 +126,35 @@ export function refresh<T extends Resource>():
 }
 
 /**
+ * Returns an RxJS operator to clone a {@link Resource} and modify
+ * the cloned instance using the provided update function. It is
+ * equivalent to
+ * ```ts
+ * map(resource => undefined)
+ * ```
+ * if `resource` is `null` or `undefined` and to
+ * ```ts
+ * map(resource => resource.mutate(update))
+ * ```
+ * otherwise.
+ *
+ * @param update the update function to apply
+ * @returns a function that transforms the source {@link Observable}
+ */
+export function mutate<T extends Resource>(update: (x: T) => void):
+    OperatorFunction<T | undefined | null, T | undefined> {
+    return pipe(
+        map(resource => !resource ? undefined : resource.mutate(update))
+    );
+}
+
+/**
  * Returns an RxJS operator to update a {@link Resource}.
  * It is equivalent to
  * ```ts
  * switchMap(resource => of(undefined))
  * ```
- * if `resource` is `null` or `undefined` or
+ * if `resource` is `null` or `undefined` and to
  * ```ts
  * switchMap(resource => resource.update())
  * ```

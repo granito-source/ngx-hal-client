@@ -1,11 +1,13 @@
 import { createSpyObject } from '@ngneat/spectator/vitest';
 import { Accessor, Collection, completeWith, create, defined, del, follow,
-    read, readCollection, refresh, Resource, update } from './internal';
+    mutate, read, readCollection, refresh, Resource,
+    update} from './internal';
 import { Observable } from 'rxjs';
 import { cold } from "@granito/vitest-marbles";
+import { describe } from "vitest";
 
 class TestResource extends Resource {
-    declare readonly id: number;
+    declare id: number;
 }
 
 describe('completeWith()', () => {
@@ -292,6 +294,44 @@ describe('refresh()', () => {
     });
 });
 
+describe('mutate()', () => {
+    it('maps undefined to undefined', () => {
+        const source: Observable<TestResource | undefined> =
+            cold('--u-|', { u: undefined });
+
+        expect(source.pipe(
+            mutate(resource => resource.id++)
+        )).toBeObservable(cold('--u-|', { u: undefined }));
+    });
+
+    it('maps null to undefined', () => {
+        const source: Observable<TestResource | null> =
+            cold('--n-|', { n: null });
+
+        expect(source.pipe(
+            mutate(resource => resource.id++)
+        )).toBeObservable(cold('--u-|', { u: undefined }));
+    });
+
+    it('maps Resource to mutate() result', () => {
+        const update = () => {};
+        const resource = createSpyObject(TestResource, { id: 1 });
+        const mutated = createSpyObject(TestResource, { id: 2 });
+        const source: Observable<TestResource | undefined> =
+            cold('--r----|', { r: resource });
+
+        resource.mutate.andReturn(mutated);
+
+        expect(source.pipe(
+            mutate(update)
+        )).toBeObservable(cold('--m----|', { m: mutated }));
+        expect(source).toSatisfyOnFlush(() => {
+            expect(resource.mutate).toHaveBeenCalledTimes(1);
+            expect(resource.mutate).toHaveBeenCalledWith(update);
+        });
+    });
+});
+
 describe('update()', () => {
     it('maps undefined to undefined', () => {
         const source: Observable<TestResource | undefined> =
@@ -311,7 +351,7 @@ describe('update()', () => {
         )).toBeObservable(cold('--u-|', { u: undefined }));
     });
 
-    it('maps edited Resource to update result', () => {
+    it('maps Resource to update() result', () => {
         const resource = createSpyObject(TestResource, { id: 1 });
         const source: Observable<TestResource | undefined> =
             cold('--r----|', { r: resource });

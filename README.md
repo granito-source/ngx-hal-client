@@ -150,10 +150,6 @@ export class Message extends Resource {
     declare id: number;
 
     declare text: string;
-
-    withText(text: string): Message {
-        return this.clone({ text });
-    }
 }
 ```
 
@@ -293,7 +289,9 @@ it is created, e.g. by using `read()` operator.
 #### Update resource
 
 `Resource` instances can be updated in the API by using `update()`
-operator.
+operator. Because the resources are normally frozen, you have to use
+`mutate()` operator to create a new instance and update its properties
+as needed.
 
 ```ts
     private current$: Observable<Message>;
@@ -301,14 +299,13 @@ operator.
     edit(text: string): Observable<Message> {
         return this.current$.pipe(
             take(1),
-            update(message => message.withText(text)),
-            read(Message)
+            mutate(message => message.text = text),
+            update()
         );
     }
 ```
 
-On successful completion the observable will emit an accessor for the
-resource, which can be used to obtain a fresh copy of it from the API.
+On successful completion the observable will re-emit the mutated resource.
 
 #### Delete resource
 

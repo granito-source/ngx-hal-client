@@ -21,7 +21,7 @@ describe('objectFrom()', () => {
 
     it('returns same string when parameter is string', () => {
         expect(objectFrom('')).toBe('');
-        expect(objectFrom('fourty-two')).toBe('fourty-two');
+        expect(objectFrom('forty-two')).toBe('forty-two');
     });
 
     it('removes HAL properties when parameter is object', () => {

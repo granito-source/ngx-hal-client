@@ -9,10 +9,6 @@ class TestService {
 
 class TestResource extends Resource {
     declare version: string;
-
-    edit(version: string): TestResource {
-        return this.clone({ version });
-    }
 }
 
 describe('Resource', () => {
@@ -67,11 +63,11 @@ describe('Resource', () => {
         expect(resource.self).toBe('/api/test');
     });
 
-    it('can be cloned/edited', () => {
-        const edited = resource.edit('9.5.1');
+    it('mutates a cloned instance', () => {
+        const mutated = resource.mutate(r => r.version = '9.5.1');
 
-        expect(edited).not.toBe(resource);
-        expect(edited.version).toBe('9.5.1');
+        expect(mutated).not.toBe(resource);
+        expect(mutated.version).toBe('9.5.1');
     });
 
     describe('#follow()', () => {
@@ -635,7 +631,6 @@ describe('Resource', () => {
             let next: TestResource | undefined;
             let complete = false;
 
-            resource.version = '7.0.1';
             resource.update().subscribe({
                 next: r => next = r,
                 complete: () => complete = true,
@@ -649,7 +644,7 @@ describe('Resource', () => {
                 statusText: 'No Content'
             });
 
-            expect(req.request.body).toEqual({ version: '7.0.1' });
+            expect(req.request.body).toEqual({ version: '1.7.2' });
             expect(next).toBe(resource);
             expect(complete).toBe(true);
         });

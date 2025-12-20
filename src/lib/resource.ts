@@ -1,5 +1,5 @@
 import { Type } from '@angular/core';
-import { Observable, catchError, map } from 'rxjs';
+import { catchError, map, Observable } from 'rxjs';
 import * as URI from 'uri-template';
 import { Accessor, HalBase, objectFrom } from './internal';
 
@@ -105,17 +105,25 @@ export class Resource extends HalBase {
         T[] | undefined {
         const obj = this._embedded[rel];
 
-        if (Array.isArray(obj))
-            return this.roArrayOf(type, obj);
+        return Array.isArray(obj) ? this.roArrayOf(type, obj) :
+            obj && this.roArrayOf(type, [obj]);
 
-        return obj && this.roArrayOf(type, [obj]);
     }
 
-    protected clone(override: any = {}): this {
-        return new (this.constructor as Type<this>)({
-            ...this,
-            ...override
-        });
+    /**
+     * Clones the resource instance and allows to modify the clone's
+     * properties using the provided function.
+     *
+     * @param update the update function to apply to the clone
+     * @returns the updated clone of the resource
+     */
+    mutate(update: (x: this) => void): this {
+        const type = this.constructor as Type<this>;
+        const mutable = new type(this);
+
+        update(mutable);
+
+        return Object.freeze(mutable);
     }
 
     protected roArrayOf<T extends Resource>(type: Type<T>,
