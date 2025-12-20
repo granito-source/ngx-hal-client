@@ -9,7 +9,7 @@ import { Accessor, HalBase, objectFrom } from './internal';
 export type Params = Record<string, string | number | boolean>;
 
 /**
- * This class repesents an in-memory instance of a HAL resource.
+ * This class represents an in-memory instance of a HAL resource.
  */
 export class Resource extends HalBase {
     /**
@@ -43,7 +43,7 @@ export class Resource extends HalBase {
     }
 
     /**
-     * Refresh the the resource. In other words, read the resource
+     * Refresh the resource. In other words, read the resource
      * identified by `self` link.
      *
      * @returns an observable of the refreshed resource instance
@@ -52,20 +52,20 @@ export class Resource extends HalBase {
         const type = this.constructor as Type<this>;
 
         return this.withSelf(self => this._client.get(self).pipe(
-            map(obj => this.instanceOf(type, obj)),
+            map(obj => this.roInstanceOf(type, obj)),
             catchError(this.handleError)
         ));
     }
 
     /**
-     * Persit the resource. Uses `PUT` request to send the new resource
+     * Persist the resource. Uses `PUT` request to send the new resource
      * state.
      *
-     * @returns an observable of resource accessor
+     * @returns an observable of the resource instance
      */
-    update(): Observable<Accessor> {
+    update(): Observable<this> {
         return this.withSelf(self => this._client.put(self, objectFrom(this)).pipe(
-            map(() => this.accessor(self)),
+            map(() => this),
             catchError(this.handleError)
         ));
     }
@@ -86,10 +86,10 @@ export class Resource extends HalBase {
             const objs = obj as Object[];
             const first = objs[0];
 
-            return first && this.instanceOf(type, first);
+            return first && this.roInstanceOf(type, first);
         }
 
-        return obj && this.instanceOf(type, obj);
+        return obj && this.roInstanceOf(type, obj);
     }
 
     /**
@@ -106,9 +106,9 @@ export class Resource extends HalBase {
         const obj = this._embedded[rel];
 
         if (Array.isArray(obj))
-            return this.arrayOf(type, obj);
+            return this.roArrayOf(type, obj);
 
-        return obj && [this.instanceOf(type, obj)];
+        return obj && this.roArrayOf(type, [obj]);
     }
 
     protected clone(override: any = {}): this {
@@ -118,8 +118,8 @@ export class Resource extends HalBase {
         });
     }
 
-    protected arrayOf<T extends Resource>(type: Type<T>,
+    protected roArrayOf<T extends Resource>(type: Type<T>,
         values: Object[]): T[] {
-        return values.map(obj => this.instanceOf(type, obj));
+        return values.map(obj => this.roInstanceOf(type, obj));
     }
 }

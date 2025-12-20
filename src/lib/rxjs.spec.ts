@@ -1,15 +1,11 @@
 import { createSpyObject } from '@ngneat/spectator/vitest';
-import { Accessor, Collection, Resource, completeWith, create, defined,
-    follow, read, readCollection, refresh, del, update } from './internal';
+import { Accessor, Collection, completeWith, create, defined, del, follow,
+    read, readCollection, refresh, Resource, update } from './internal';
 import { Observable } from 'rxjs';
 import { cold } from "@granito/vitest-marbles";
 
 class TestResource extends Resource {
-    declare id: number;
-
-    edit(): TestResource {
-        throw new Error('fake implementation');
-    }
+    declare readonly id: number;
 }
 
 describe('completeWith()', () => {
@@ -302,7 +298,7 @@ describe('update()', () => {
             cold('--u-|', { u: undefined });
 
         expect(source.pipe(
-            update(x => x.edit())
+            update()
         )).toBeObservable(cold('--u-|', { u: undefined }));
     });
 
@@ -311,31 +307,23 @@ describe('update()', () => {
             cold('--n-|', { n: null });
 
         expect(source.pipe(
-            update(x => x.edit())
+            update()
         )).toBeObservable(cold('--u-|', { u: undefined }));
     });
 
-    it('maps edited Resource to .update() result', () => {
-        const accessor = new Accessor({
-            _links: {
-                self: { href: '/api/resource' }
-            }
-        });
+    it('maps edited Resource to update result', () => {
         const resource = createSpyObject(TestResource, { id: 1 });
-        const edited = createSpyObject(TestResource, { id: 2 });
         const source: Observable<TestResource | undefined> =
             cold('--r----|', { r: resource });
 
-        resource.edit.andReturn(edited);
-        edited.update.andReturn(cold('--a|', { a: accessor }));
+        resource.update.andReturn(cold('--r|', { r: resource }));
 
         expect(source.pipe(
-            update(x => x.edit())
-        )).toBeObservable(cold('----a--|', { a: accessor }));
+            update()
+        )).toBeObservable(cold('----r--|', { r: resource }));
         expect(source).toSatisfyOnFlush(() => {
-            expect(resource.update).not.toHaveBeenCalled();
-            expect(edited.update).toHaveBeenCalledTimes(1);
-            expect(edited.update).toHaveBeenCalledWith();
+            expect(resource.update).toHaveBeenCalledTimes(1);
+            expect(resource.update).toHaveBeenCalledWith();
         });
     });
 });

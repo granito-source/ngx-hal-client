@@ -34,13 +34,13 @@ export class Collection<T extends Resource> extends Resource {
             const values = this._embedded[rel];
 
             if (Array.isArray(values)) {
-                this.values = this.arrayOf(type, values);
+                this.values = this.roArrayOf(type, values);
 
                 return;
             }
         }
 
-        this.values = [];
+        this.values = this.roArrayOf(type, []);
     }
 
     /**

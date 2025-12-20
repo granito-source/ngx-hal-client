@@ -632,7 +632,7 @@ describe('Resource', () => {
 
     describe('#update()', () => {
         it('puts payload to self when it exists', () => {
-            let next: Accessor | undefined;
+            let next: TestResource | undefined;
             let complete = false;
 
             resource.version = '7.0.1';
@@ -650,7 +650,7 @@ describe('Resource', () => {
             });
 
             expect(req.request.body).toEqual({ version: '7.0.1' });
-            expect(next?.self).toBe('/api/test');
+            expect(next).toBe(resource);
             expect(complete).toBe(true);
         });
 
@@ -949,7 +949,7 @@ describe('Resource', () => {
             const array = resource.getArray(TestResource, 'empty');
 
             expect(array).toBeDefined();
-            expect(array?.map(x => 1)).toEqual([]);
+            expect(array?.map(() => 1)).toEqual([]);
         });
 
         it('wraps value in array when rel is not array', () => {

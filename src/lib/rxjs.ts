@@ -126,30 +126,23 @@ export function refresh<T extends Resource>():
 }
 
 /**
- * Returns an RxJS operator to edit and update a {@link Resource}.
+ * Returns an RxJS operator to update a {@link Resource}.
  * It is equivalent to
  * ```ts
  * switchMap(resource => of(undefined))
  * ```
- * if `resource` is `null` or `undefined` and applying edit operation to
- * the resource and doing
+ * if `resource` is `null` or `undefined` or
  * ```ts
  * switchMap(resource => resource.update())
  * ```
  * otherwise.
  *
- * @param edit the operation to edit the resource
  * @returns a function that transforms the source {@link Observable}
  */
-export function update<T extends Resource>(edit: (resource: Readonly<T>) => T):
-    OperatorFunction<T | undefined | null, Accessor | undefined> {
+export function update<T extends Resource>():
+    OperatorFunction<T | undefined | null, T | undefined> {
     return pipe(
-        switchMap(resource => {
-            if (!resource)
-                return of(undefined);
-
-            return (edit(resource)).update();
-        })
+        switchMap(resource => !resource ? of(undefined) : resource.update())
     );
 }
 

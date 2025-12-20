@@ -18,7 +18,7 @@ export class Accessor extends HalBase {
      */
     read<T extends Resource>(type: Type<T>): Observable<T> {
         return this._client.get(this.self).pipe(
-            map(obj => this.instanceOf(type, obj)),
+            map(obj => this.roInstanceOf(type, obj)),
             catchError(this.handleError)
         );
     }
@@ -32,10 +32,16 @@ export class Accessor extends HalBase {
     readCollection<T extends Resource>(type: Type<T>):
         Observable<Collection<T>> {
         return this._client.get(this.self).pipe(
-            map(obj => new Collection(type, {
-                ...obj,
-                 _client: this._client
-            })),
+            map(obj => {
+                const collection = new Collection(type, {
+                    ...obj,
+                    _client: this._client
+                });
+
+                Object.freeze(collection);
+
+                return collection;
+            }),
             catchError(this.handleError)
         );
     }

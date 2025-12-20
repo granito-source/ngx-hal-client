@@ -824,10 +824,9 @@ describe('Collection', () => {
 
     describe('#update()', () => {
         it('puts payload to self when it exists', () => {
-            let next: Accessor | undefined;
+            let next: Collection<TestResource> | undefined;
             let complete = false;
 
-            collection.values[0].version = '2.0.1';
             collection.update().subscribe({
                 next: r => next = r,
                 complete: () => complete = true,
@@ -842,10 +841,10 @@ describe('Collection', () => {
             });
 
             expect(req.request.body).toEqual([
-                { version: '2.0.1' },
+                { version: '2.0.0' },
                 { version: '3.0.0' }
             ]);
-            expect(next?.self).toBe('/api/test');
+            expect(next).toBe(collection);
             expect(complete).toBe(true);
         });
 
@@ -1144,7 +1143,7 @@ describe('Collection', () => {
             const array = collection.getArray(TestResource, 'empty');
 
             expect(array).toBeDefined();
-            expect(array?.map(x => 1)).toEqual([]);
+            expect(array?.map(() => 1)).toEqual([]);
         });
 
         it('wraps value in array when rel is not array', () => {

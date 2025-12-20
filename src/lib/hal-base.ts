@@ -6,11 +6,11 @@ import { Accessor, HalError, objectFrom } from './internal';
 const self = 'self';
 
 interface Link {
-    href: string;
+    readonly href: string;
 
-    templated?: boolean;
+    readonly templated?: boolean;
 
-    methods?: string[];
+    readonly methods?: string[];
 }
 
 /**
@@ -124,6 +124,10 @@ export abstract class HalBase {
 
     protected instanceOf<T>(type: Type<T>, obj: Object): T {
         return new type({ ...obj, _client: this._client });
+    }
+
+    protected roInstanceOf<T>(type: Type<T>, obj: Object): T {
+        return Object.freeze(this.instanceOf(type, obj));
     }
 
     protected handleError(err: HttpErrorResponse): Observable<never> {
