@@ -8,14 +8,14 @@ to disclose it responsibly.
 
 ## Supported Versions
 
-_Angular HAL Client_ has not been released yet. We publish developers' previews,
-which allow up to refine the API of the library in a real-world Angular project.
-As such, only the latest published developers' preview shold be considered when
-reporting security issues.
+_Angular HAL Client_ has not been released yet. We publish developers'
+previews, which allow up to refine the API of the library in a real-world
+Angular project. As such, only the latest published developers' preview
+should be considered when reporting security issues.
 
-Going forward, after the first release is published, the latest two major releases
-will be supported for security updates as well as the upcoming major release
-(code in _main_ branch).
+Going forward, after the first release is published, the latest two major
+releases will be supported for security updates as well as the upcoming
+major release (code in _main_ branch).
 
 ## Reporting a Vulnerability
 

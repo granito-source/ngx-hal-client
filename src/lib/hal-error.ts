@@ -1,6 +1,6 @@
 /**
  * This class represents errors thrown by _Angular HAL Client_. It
- * unifies errors produced by _Angulat HTTP Client_ and errors originating
+ * unifies errors produced by _Angular HTTP Client_ and errors originating
  * in the API.
  */
 export class HalError extends Error {

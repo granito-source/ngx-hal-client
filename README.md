@@ -212,7 +212,7 @@ does not have `messages` link.
 `Accessor` and `Resource` objects allow you to execute CRUD operations
 using HAL API. Some operations are defined on both objects and work
 identically, some are defined only on `Resource`, and some are available
-in both but have a bit different syntax and semantic.
+in both but have somewhat different syntax and semantic.
 
 #### Read collection
 

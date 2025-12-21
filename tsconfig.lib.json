@@ -1,15 +1,15 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "composite": true,
     "outDir": "./build/out-tsc/lib",
     "declarationMap": true,
     "inlineSources": true
   },
   "include": [
-    "**/*.ts"
+    "src/**/*.ts"
   ],
   "exclude": [
-    "**/*.spec.ts"
+    "vitest.config.ts",
+    "src/**/*.spec.ts"
   ]
 }

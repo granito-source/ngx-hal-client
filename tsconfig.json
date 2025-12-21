@@ -1,27 +1,5 @@
 {
-  "compilerOptions": {
-    "baseUrl": "./",
-    "outDir": "./build/out-tsc",
-    "paths": {
-      "@granito/ngx-hal-client": [
-        "build/dist"
-      ]
-    },
-    "target": "ES2022",
-    "module": "preserve",
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noImplicitOverride": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "importHelpers": true,
-    "useDefineForClassFields": false,
-    "sourceMap": true,
-    "declaration": true
-  },
+  "extends": "./tsconfig.base.json",
   "references": [
     {
       "path": "tsconfig.lib.json"
@@ -29,11 +7,5 @@
     {
       "path": "tsconfig.spec.json"
     }
-  ],
-  "angularCompilerOptions": {
-    "enableI18nLegacyMessageIdFormat": false,
-    "strictInjectionParameters": true,
-    "strictInputAccessModifiers": true,
-    "strictTemplates": true
-  }
+  ]
 }
