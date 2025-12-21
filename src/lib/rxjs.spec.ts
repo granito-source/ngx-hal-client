@@ -1,7 +1,7 @@
 import { createSpyObject } from '@ngneat/spectator/vitest';
 import { Accessor, Collection, completeWith, create, defined, del, follow,
     mutate, read, readCollection, refresh, Resource,
-    update} from './internal';
+    update } from './internal';
 import { Observable } from 'rxjs';
 import { cold } from "@granito/vitest-marbles";
 import { describe } from "vitest";

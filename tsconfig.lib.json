@@ -1,14 +1,13 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "composite": true,
     "outDir": "./build/out-tsc/lib",
-    "declaration": true,
     "declarationMap": true,
-    "inlineSources": true,
-    "types": []
+    "inlineSources": true
   },
-  "files": [
-    "src/public-api.ts"
+  "include": [
+    "**/*.ts"
   ],
   "exclude": [
     "**/*.spec.ts"

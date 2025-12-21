@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "composite": true,
     "outDir": "./build/out-tsc/spec",
     "types": [
       "vitest/globals"
@@ -10,5 +11,10 @@
   "include": [
     "**/*.spec.ts",
     "**/*.d.ts"
+  ],
+  "references": [
+    {
+      "path": "tsconfig.lib.json"
+    }
   ]
 }

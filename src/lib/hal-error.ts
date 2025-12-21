@@ -20,7 +20,7 @@ export class HalError extends Error {
     error?: string;
 
     /**
-     * XXX.
+     * Free form error properties.
      */
     [key: string]: any;
 
