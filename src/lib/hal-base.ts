@@ -31,30 +31,30 @@ export abstract class HalBase {
     }
 
     /**
-     * This property is `true` when either `methods` array does not exist
-     * in the `self` link or the array exists and contains `POST` string.
-     * It is `false` otherwise.
+     * This property is `true` when the `self` link exists and either
+     * `methods` array does not exist in the `self` link or the array
+     * exists and contains `POST` string. It is `false` otherwise.
      */
     get canCreate(): boolean {
-        return this.can('POST');
+        return !!this.uriFor('POST');
     }
 
     /**
-     * This property is `true` when either `methods` array does not exist
-     * in the `self` link or the array exists and contains `GET` string.
-     * It is `false` otherwise.
+     * This property is `true` when the `self` link exists and either
+     * `methods` array does not exist in the `self` link or the array
+     * exists and contains `GET` string. It is `false` otherwise.
      */
     get canRead(): boolean {
-        return this.can('GET');
+        return !!this.uriFor('GET');
     }
 
     /**
-     * This property is `true` when either `methods` array does not exist
-     * in the `self` link or the array exists and contains `DELETE`
-     * string. It is `false` otherwise.
+     * This property is `true` when the `self` link exists and either
+     * `methods` array does not exist in the `self` link or the array
+     * exists and contains `DELETE` string. It is `false` otherwise.
      */
     get canDelete(): boolean {
-        return this.can('DELETE');
+        return !!this.uriFor('DELETE');
     }
 
     /**
@@ -67,23 +67,23 @@ export abstract class HalBase {
     /**
      * Create a new resource in the collection identified by `self` link.
      * It makes a `POST` call to the URI in `self` link and returns an
-     * observable for the call. The observable normally emits an accessor
-     * for the newly created resource or `undefined` if `Location` header
-     * was not returned by the call.
+     * observable for the call. The observable emits an accessor for
+     * the newly created resource. The `self` link in the accessor
+     * may be set to `undefined` if `Location` header is not returned by
+     * the call.
      *
      * @param obj the payload for the `POST` method call
      * @returns an observable of the resource's accessor
      */
-    create(obj: any): Observable<Accessor | undefined> {
-        return this.withSelf(
-            self => this._client.post(self, objectFrom(obj), {
+    create(obj: any): Observable<Accessor> {
+        return this.withUriFor('POST',
+            uri => this._client.post(uri, objectFrom(obj), {
                 observe: 'response'
             }).pipe(
                 map(response => response.headers.get('Location') || undefined),
-                map(location => !location ? undefined : this.accessor(location)),
+                map(location => this.accessor(location)),
                 catchError(this.handleError)
-            )
-        );
+            ));
     }
 
     /**
@@ -92,28 +92,28 @@ export abstract class HalBase {
      * @returns an observable that emits next signal on successful delete
      */
     delete(): Observable<void> {
-        return this.withSelf(
-            self => this._client.delete(self).pipe(
+        return this.withUriFor('DELETE',
+            uri => this._client.delete(uri).pipe(
                 map(() => undefined),
                 catchError(this.handleError)
-            )
-        );
+            ));
     }
 
-    protected withSelf<T>(func: (uri: string) => Observable<T>): Observable<T> {
-        const self = this.self;
+    protected withUriFor<T>(method: string,
+        func: (x: string) => Observable<T>): Observable<T> {
+        const uri = this.uriFor(method);
 
-        if (!self)
+        if (!uri)
             return throwError(() => new HalError({
-                message: 'no valid "self" relation'
+                message: `no "self" relation supporting "${method}" method`
             }));
 
-        return func(self);
+        return func(uri);
     }
 
-    protected accessor(href: string, methods?: string[]): Accessor {
+    protected accessor(href?: string, methods?: string[]): Accessor {
         return this.instanceOf(Accessor, {
-            _links: {
+            _links: !href ? {} : {
                 self: {
                     href,
                     methods
@@ -146,13 +146,18 @@ export abstract class HalBase {
         }));
     }
 
-    protected can(method: string): boolean {
-        const methods = this._links[self]?.methods;
+    protected uriFor(method: string): string | undefined {
+        const selfRel = this._links[self];
+
+        if (!selfRel || !selfRel.href)
+            return undefined;
+
+        const methods = selfRel.methods;
 
         if (!Array.isArray(methods))
-            return true;
+            return selfRel.href;
 
-        return !!methods.find(m => typeof m === 'string' &&
-            m.toUpperCase() === method);
+        return methods.find(m => typeof m === 'string' &&
+            m.toUpperCase() === method) && selfRel.href || undefined;
     }
 }

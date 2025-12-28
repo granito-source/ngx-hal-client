@@ -13,33 +13,33 @@ export type Params = Record<string, string | number | boolean>;
  */
 export class Resource extends HalBase {
     /**
-     * This property is `true` when either `methods` array does not exist
-     * in the `self` link or the array exists and contains `PUT` string.
-     * It is `false` otherwise.
+     * This property is `true` when the `self` link exists and either
+     * `methods` array does not exist in the `self` link or the array
+     * exists and contains `PUT` string. It is `false` otherwise.
      */
     get canUpdate(): boolean {
-        return this.can('PUT');
+        return !!this.uriFor('PUT');
     }
 
     /**
-     * Follow the relation link. Returns an accessor for the resource
-     * or `undefined` if no such relation exists.
+     * Follow the relation link. Returns an accessor for the resource.
+     * The `self` link in the accessor is set to `undefined` if no such
+     * relation exists.
      *
      * @param rel the name of the relation link
      * @param params parameters for a templated link
-     * @returns an accessor for the linked resource or `undefined`
+     * @returns an accessor for the linked resource
      */
-    follow(rel: string, params: Params = {}): Accessor | undefined {
+    follow(rel: string, params: Params = {}): Accessor {
         const link = this._links[rel];
 
         if (!link)
-            return undefined;
+            return this.accessor();
 
         const uri = link.href;
 
-        return !uri ? undefined :
-            this.accessor(!link.templated ? uri :
-                URI.parse(uri).expand(params), link.methods);
+        return this.accessor(!link.templated ? uri :
+            URI.parse(uri).expand(params), link.methods);
     }
 
     /**
@@ -51,7 +51,7 @@ export class Resource extends HalBase {
     read(): Observable<this> {
         const type = this.constructor as Type<this>;
 
-        return this.withSelf(self => this._client.get(self).pipe(
+        return this.withUriFor('GET', uri => this._client.get(uri).pipe(
             map(obj => this.roInstanceOf(type, obj)),
             catchError(this.handleError)
         ));
@@ -64,7 +64,7 @@ export class Resource extends HalBase {
      * @returns an observable of the resource instance
      */
     update(): Observable<this> {
-        return this.withSelf(self => this._client.put(self, objectFrom(this)).pipe(
+        return this.withUriFor('PUT', uri => this._client.put(uri, objectFrom(this)).pipe(
             map(() => this),
             catchError(this.handleError)
         ));

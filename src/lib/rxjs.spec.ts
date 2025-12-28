@@ -1,10 +1,8 @@
 import { createSpyObject } from '@ngneat/spectator/vitest';
-import { Accessor, Collection, completeWith, create, defined, del, follow,
-    mutate, read, readCollection, refresh, Resource,
+import { Accessor, Collection, completeWith, create, defined, del,
+    follow, mutate, read, readCollection, refresh, Resource,
     update } from './internal';
-import { Observable } from 'rxjs';
 import { cold } from "@granito/vitest-marbles";
-import { describe } from "vitest";
 
 class TestResource extends Resource {
     declare id: number;
@@ -46,38 +44,6 @@ describe('defined()', () => {
 });
 
 describe('follow()', () => {
-    it('maps undefined to undefined', () => {
-        const source = cold('--u-|', { u: undefined });
-
-        expect(source.pipe(
-            follow('link')
-        )).toBeObservable(cold('--u-|', { u: undefined }));
-    });
-
-    it('maps null to undefined', () => {
-        const source = cold('--n-|', { n: null });
-
-        expect(source.pipe(
-            follow('link')
-        )).toBeObservable(cold('--u-|', { u: undefined }));
-    });
-
-    it('maps to results of .follow() when it returns undefined', () => {
-        const resource = createSpyObject(TestResource);
-        const source = cold('--r-|', { r: resource });
-
-        resource.follow.andReturn(undefined);
-
-        expect(source.pipe(
-            follow('link', { p: 'param' })
-        )).toBeObservable(cold('--u-|', { u: undefined }));
-        expect(source).toSatisfyOnFlush(() => {
-            expect(resource.follow).toHaveBeenCalledTimes(1);
-            expect(resource.follow).toHaveBeenCalledWith('link',
-                { p: 'param' });
-        });
-    });
-
     it('maps to results of .follow() when it returns accessor', () => {
         const accessor = new Accessor({
             _links: {
@@ -101,22 +67,6 @@ describe('follow()', () => {
 });
 
 describe('create()', () => {
-    it('maps undefined to undefined', () => {
-        const source = cold('--u-|', { u: undefined });
-
-        expect(source.pipe(
-            create({ id: 1 })
-        )).toBeObservable(cold('--u-|', { u: undefined }));
-    });
-
-    it('maps null to undefined', () => {
-        const source = cold('--n-|', { n: null });
-
-        expect(source.pipe(
-            create({ id: 1 })
-        )).toBeObservable(cold('--u-|', { u: undefined }));
-    });
-
     it('maps Accessor to .create() result', () => {
         const result = new Accessor({
             _links: {
@@ -159,22 +109,6 @@ describe('create()', () => {
 });
 
 describe('read()', () => {
-    it('maps undefined to undefined', () => {
-        const source = cold('--u-|', { u: undefined });
-
-        expect(source.pipe(
-            read(TestResource)
-        )).toBeObservable(cold('--u-|', { u: undefined }));
-    });
-
-    it('maps null to undefined', () => {
-        const source = cold('--n-|', { n: null });
-
-        expect(source.pipe(
-            read(TestResource)
-        )).toBeObservable(cold('--u-|', { u: undefined }));
-    });
-
     it('maps Accessor to .read() result', () => {
         const resource = new TestResource({
             id: 1,
@@ -198,22 +132,6 @@ describe('read()', () => {
 });
 
 describe('readCollection()', () => {
-    it('maps undefined to undefined', () => {
-        const source = cold('--u-|', { u: undefined });
-
-        expect(source.pipe(
-            readCollection(TestResource)
-        )).toBeObservable(cold('--u-|', { u: undefined }));
-    });
-
-    it('maps null to undefined', () => {
-        const source = cold('--n-|', { n: null });
-
-        expect(source.pipe(
-            readCollection(TestResource)
-        )).toBeObservable(cold('--u-|', { u: undefined }));
-    });
-
     it('maps Accessor to .readCollection() result', () => {
         const collection = new Collection(TestResource, {
             _embedded: {
@@ -236,22 +154,6 @@ describe('readCollection()', () => {
 });
 
 describe('refresh()', () => {
-    it('maps undefined to undefined', () => {
-        const source = cold('--u-|', { u: undefined });
-
-        expect(source.pipe(
-            refresh()
-        )).toBeObservable(cold('--u-|', { u: undefined }));
-    });
-
-    it('maps null to undefined', () => {
-        const source = cold('--n-|', { n: null });
-
-        expect(source.pipe(
-            refresh()
-        )).toBeObservable(cold('--u-|', { u: undefined }));
-    });
-
     it('maps Resource to .read() result', () => {
         const result = new TestResource({
             id: 1,
@@ -295,30 +197,11 @@ describe('refresh()', () => {
 });
 
 describe('mutate()', () => {
-    it('maps undefined to undefined', () => {
-        const source: Observable<TestResource | undefined> =
-            cold('--u-|', { u: undefined });
-
-        expect(source.pipe(
-            mutate(resource => resource.id++)
-        )).toBeObservable(cold('--u-|', { u: undefined }));
-    });
-
-    it('maps null to undefined', () => {
-        const source: Observable<TestResource | null> =
-            cold('--n-|', { n: null });
-
-        expect(source.pipe(
-            mutate(resource => resource.id++)
-        )).toBeObservable(cold('--u-|', { u: undefined }));
-    });
-
     it('maps Resource to mutate() result', () => {
         const update = () => {};
         const resource = createSpyObject(TestResource, { id: 1 });
         const mutated = createSpyObject(TestResource, { id: 2 });
-        const source: Observable<TestResource | undefined> =
-            cold('--r----|', { r: resource });
+        const source = cold('--r----|', { r: resource });
 
         resource.mutate.andReturn(mutated);
 
@@ -333,28 +216,9 @@ describe('mutate()', () => {
 });
 
 describe('update()', () => {
-    it('maps undefined to undefined', () => {
-        const source: Observable<TestResource | undefined> =
-            cold('--u-|', { u: undefined });
-
-        expect(source.pipe(
-            update()
-        )).toBeObservable(cold('--u-|', { u: undefined }));
-    });
-
-    it('maps null to undefined', () => {
-        const source: Observable<TestResource | null> =
-            cold('--n-|', { n: null });
-
-        expect(source.pipe(
-            update()
-        )).toBeObservable(cold('--u-|', { u: undefined }));
-    });
-
     it('maps Resource to update() result', () => {
         const resource = createSpyObject(TestResource, { id: 1 });
-        const source: Observable<TestResource | undefined> =
-            cold('--r----|', { r: resource });
+        const source = cold('--r----|', { r: resource });
 
         resource.update.andReturn(cold('--r|', { r: resource }));
 
@@ -369,22 +233,6 @@ describe('update()', () => {
 });
 
 describe('del()', () => {
-    it('does nothing for undefined', () => {
-        const source = cold('--u-|', { u: undefined });
-
-        expect(source.pipe(
-            del()
-        )).toBeObservable(cold('--v-|', { v: undefined }));
-    });
-
-    it('does nothing for null', () => {
-        const source = cold('--n-|', { n: null });
-
-        expect(source.pipe(
-            del()
-        )).toBeObservable(cold('--v-|', { v: undefined }));
-    });
-
     it('calls delete() on Accessor', () => {
         const accessor = createSpyObject(Accessor);
         const source = cold('--a----|', { a: accessor });

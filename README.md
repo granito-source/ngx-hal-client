@@ -86,7 +86,7 @@ link to work with a collection of messages. When one executes `GET` on
                     },
                     "next": {
                         "href": "/api/v1/messages/1"
-                    },
+                    }
                 }
             },
             {
@@ -177,7 +177,7 @@ export class ApiRootService {
         return this.apiRoot$.asObservable();
     }
 
-    constructor(@Inject(HAL_ROOT) private readonly halRoot: Accessor) {
+    constructor(@Inject(HAL_ROOT) halRoot: Accessor) {
         this.halRoot.read(ApiRoot)
             .subscribe(api => this.apiRoot$.next(api));
     }
@@ -193,7 +193,7 @@ get accessors for the linked resources.
 ```ts
 @Injectable({ providedIn: 'root' })
 export class MessageService {
-    private messages$: Observable<Accessor | undefined>;
+    private messages$: Observable<Accessor>;
 
     constructor(apiRootService: ApiRootService) {
         this.messages$ = apiRootService.apiRoot.pipe(
@@ -220,13 +220,20 @@ Now that you have an accessor for the collection of messages, you can
 read the collection and access its elements.
 
 ```ts
-    readFirst(): Observable<Message | undefined> {
+@Injectable({ providedIn: 'root' })
+export class MessageService {
+    private messages$: Observable<Accessor>;
+
+    // ...
+
+    readFirst(): Observable<Message> {
         return this.messages$.pipe(
             take(1),
             readCollection(Message),
-            map(collection => collection?.values[0])
+            map(collection => collection.values[0])
         );
     }
+}
 ```
 
 The example above shows how to access the first message in the collection
@@ -237,8 +244,12 @@ if it exists.
 Messages are resources, and they may have their own links. You can read resources referenced by these links as shown below.
 
 ```ts
+@Injectable({ providedIn: 'root' })
+export class MessageService {
     private current$: Observable<Message>;
-    ...
+
+    // ...
+
     readNext(): Observable<Message> {
         return this.current$.pipe(
             take(1),
@@ -246,6 +257,7 @@ Messages are resources, and they may have their own links. You can read resource
             read(Message)
         );
     }
+}
 ```
 
 The example shows how to access the next message in the thread if
@@ -258,12 +270,17 @@ operation on the resource using its `self` link. For example, here
 is how you can refresh the API root in `ApiRootService`.
 
 ```ts
+@Injectable({ providedIn: 'root' })
+export class ApiRootService {
+    // ...
+
     refresh(): void {
         this.apiRoot$.pipe(
             take(1),
             refresh()
         ).subscribe(api => this.apiRoot$.next(api));
     }
+}
 ```
 
 #### Create resource
@@ -271,12 +288,19 @@ is how you can refresh the API root in `ApiRootService`.
 To create a new message, you can use `create()` operator.
 
 ```ts
-    post(message: { text: string; }): Observable<Accessor | undefined> {
+@Injectable({ providedIn: 'root' })
+export class MessageService {
+    private messages$: Observable<Accessor>;
+
+    // ...
+
+    post(message: { text: string; }): Observable<Accessor> {
         return this.messages$.pipe(
             take(1),
             create(message)
         );
     }
+}
 ```
 
 Two things are worth mentioning here. First, the object passed to
@@ -294,8 +318,12 @@ operator. Because the resources are normally frozen, you have to use
 as needed.
 
 ```ts
+@Injectable({ providedIn: 'root' })
+export class MessageService {
     private current$: Observable<Message>;
-    ...
+
+    // ...
+
     edit(text: string): Observable<Message> {
         return this.current$.pipe(
             take(1),
@@ -303,6 +331,7 @@ as needed.
             update()
         );
     }
+}
 ```
 
 On successful completion the observable will re-emit the mutated resource.
@@ -313,14 +342,19 @@ And finally, resources and collections can be deleted using `del()`
 operator.
 
 ```ts
+@Injectable({ providedIn: 'root' })
+export class MessageService {
     private current$: Observable<Message>;
-    ...
+
+    // ...
+
     deleteCurrent(): Observable<void> {
         return this.current$.pipe(
             take(1),
             del()
         );
     }
+}
 ```
 
 ### Access embedded resources
@@ -329,17 +363,27 @@ operator.
 to access embedded arrays, you can use `getArray()` method.
 
 ```ts
+@Injectable({ providedIn: 'root' })
+export class MessageService {
+    // ...
+
     array(messages: Collection<Message>): Message[] | undefined {
         return messages.getArray(Message, 'items');
     }
+}
 ```
 
 To get a single embedded object, you can use `get()` method.
 
 ```ts
+@Injectable({ providedIn: 'root' })
+export class MessageService {
+    // ...
+
     one(messages: Collection<Message>): Message | undefined {
         return messages.get(Message, 'selected');
     }
+}
 ```
 
 Note, `Collection` is a subclass of `Resource`, so both methods can be

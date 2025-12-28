@@ -72,8 +72,8 @@ describe('Collection', () => {
             _client: spectator.httpClient,
             _links: {
                 self: { href: '/api/test' },
-                next: { href: '/api/test?start=44&limit2' },
-                prev: { href: '/api/test?start=40&limit2' }
+                next: { href: '/api/test?start=44&limit=2' },
+                prev: { href: '/api/test?start=40&limit=2' }
             },
             _embedded: {
                 array: [
@@ -155,50 +155,47 @@ describe('Collection', () => {
     });
 
     describe('#follow()', () => {
-        it('returns undefined when rel does not exist', () => {
-            expect(collection.follow('missing')).toBeUndefined();
+        it('sets self to undefined when rel does not exist', () => {
+            expect(collection.follow('missing').self).toBeUndefined();
         });
 
-        it('returns undefined when rel does not have href', () => {
-            expect(noHref.follow('self')).toBeUndefined();
+        it('sets self to undefined when rel does not have href', () => {
+            expect(noHref.follow('self').self).toBeUndefined();
         });
 
-        it('returns accessor with link when rel exists', () => {
-            const accessor = collection.follow('find');
-
-            expect(accessor).toBeDefined();
-            expect(accessor?.self).toBe('/api/search');
+        it('returns accessor with self link when rel exists', () => {
+            expect(collection.follow('find').self).toBe('/api/search');
         });
 
         it('expands parameters when link is templated', () => {
-            const accessor = collection.follow('find', { q: 'test'});
-
-            expect(accessor).toBeDefined();
-            expect(accessor?.self).toBe('/api/search?q=test');
+            expect(collection.follow('find', { q: 'test' }).self)
+                .toBe('/api/search?q=test');
         });
 
         it('does not expand parameters when link is not templated', () => {
-            const accessor = collection.follow('notmpl', { q: 'test'});
-
-            expect(accessor).toBeDefined();
-            expect(accessor?.self).toBe('/api/search{?q}');
+            expect(collection.follow('notmpl', { q: 'test' }).self)
+                .toBe('/api/search{?q}');
         });
 
         it('preserves methods array when present', () => {
             const accessor = collection.follow('find');
 
-            expect(accessor?.canCreate).toBe(false);
-            expect(accessor?.canRead).toBe(true);
-            expect(accessor?.canDelete).toBe(false);
+            expect(accessor.canCreate).toBe(false);
+            expect(accessor.canRead).toBe(true);
+            expect(accessor.canDelete).toBe(false);
         });
     });
 
     describe('#next()', () => {
-        it('returns undefined when next rel does not exist', () => {
-            expect(collection.next()).toBeUndefined();
+        it('returns accessor with self link when next rel exists', () => {
+            expect(paged.next().self).toBe('/api/test?start=44&limit=2');
         });
 
-        it('returns undefined when next rel does not have href', () => {
+        it('sets self to  undefined when next rel does not exist', () => {
+            expect(collection.next().self).toBeUndefined();
+        });
+
+        it('sets self undefined when next rel does not have href', () => {
             const broken = new Collection(TestResource, {
                 _client: spectator.httpClient,
                 _links: {
@@ -211,45 +208,20 @@ describe('Collection', () => {
                 start: 0
             });
 
-            expect(broken.next()).toBeUndefined();
-        });
-
-        it('returns accessor with link when next rel exists', () => {
-            const accessor = paged.next();
-
-            expect(accessor).toBeDefined();
-            expect(accessor?.self).toBe('/api/test?start=44&limit2');
-        });
-
-        it('returns undefined when canRead() is false', () => {
-            const broken = new Collection(TestResource, {
-                _client: spectator.httpClient,
-                _links: {
-                    self: { href: '/api/test' },
-                    next: {
-                        href: '/api/test?start=44&limit2',
-                        methods: ['DELETE']
-                    }
-                },
-                _embedded: {
-                    array: [
-                        { version: '2.0.0' },
-                        { version: '3.0.0' }
-                    ]
-                },
-                start: 42
-            });
-
-            expect(broken.next()).toBeUndefined();
+            expect(broken.next().self).toBeUndefined();
         });
     });
 
-    describe('#previous()', () => {
-        it('returns undefined when prev rel does not exist', () => {
-            expect(collection.previous()).toBeUndefined();
+    describe('#prev()', () => {
+        it('returns accessor with self link when prev rel exists', () => {
+            expect(paged.prev().self).toBe('/api/test?start=40&limit=2');
         });
 
-        it('returns undefined when prev rel does not have href', () => {
+        it('sets self to undefined when prev rel does not exist', () => {
+            expect(collection.prev().self).toBeUndefined();
+        });
+
+        it('sets self to undefined when prev rel does not have href', () => {
             const broken = new Collection(TestResource, {
                 _client: spectator.httpClient,
                 _links: {
@@ -262,40 +234,20 @@ describe('Collection', () => {
                 start: 0
             });
 
-            expect(broken.previous()).toBeUndefined();
-        });
-
-        it('returns accessor with link when prev rel exists', () => {
-            const accessor = paged.previous();
-
-            expect(accessor).toBeDefined();
-            expect(accessor?.self).toBe('/api/test?start=40&limit2');
-        });
-
-        it('returns undefined when canRead() is false', () => {
-            const broken = new Collection(TestResource, {
-                _client: spectator.httpClient,
-                _links: {
-                    self: { href: '/api/test' },
-                    prev: {
-                        href: '/api/test?start=40&limit2',
-                        methods: ['DELETE']
-                    }
-                },
-                _embedded: {
-                    array: [
-                        { version: '2.0.0' },
-                        { version: '3.0.0' }
-                    ]
-                },
-                start: 42
-            });
-
-            expect(broken.previous()).toBeUndefined();
+            expect(broken.prev().self).toBeUndefined();
         });
     });
 
     describe('#canCreate', () => {
+        it('is false when no self link', () => {
+            const noSelf = new Collection(TestResource, {
+                _client: spectator.httpClient,
+                _links: {}
+            });
+
+            expect(noSelf.canCreate).toBe(false);
+        });
+
         it('is true when no methods array', () => {
             expect(collection.canCreate).toBe(true);
         });
@@ -361,7 +313,7 @@ describe('Collection', () => {
         const item = new TestResource({ version: '3.5.7' });
 
         it('posts payload to self when it exists', () => {
-            let next: Accessor | undefined;
+            let next!: Accessor;
             let complete = false;
 
             collection.create(item).subscribe({
@@ -381,7 +333,8 @@ describe('Collection', () => {
             });
 
             expect(req.request.body).toEqual({ version: '3.5.7' });
-            expect(next?.self).toBe('/api/test/42');
+            expect(next).toBeDefined();
+            expect(next.self).toBe('/api/test/42');
             expect(complete).toBe(true);
         });
 
@@ -399,7 +352,8 @@ describe('Collection', () => {
             expect(error.path).toBeUndefined();
             expect(error.status).toBeUndefined();
             expect(error.error).toBeUndefined();
-            expect(error.message).toBe('no valid "self" relation');
+            expect(error.message)
+                .toBe('no "self" relation supporting "POST" method');
         });
 
         it('throws HAL error when self rel does have href', () => {
@@ -416,11 +370,42 @@ describe('Collection', () => {
             expect(error.path).toBeUndefined();
             expect(error.status).toBeUndefined();
             expect(error.error).toBeUndefined();
-            expect(error.message).toBe('no valid "self" relation');
+            expect(error.message)
+                .toBe('no "self" relation supporting "POST" method');
+        });
+
+        it('throws HAL error when POST is not allowed', () => {
+            const noPost = new Collection(TestResource, {
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/test',
+                        methods: ['DELETE']
+                    }
+                },
+                _embedded: {
+                    array: []
+                }
+            });
+            let error!: HalError;
+
+            noPost.create(item).subscribe({
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message)
+                .toBe('no "self" relation supporting "POST" method');
         });
 
         it('posts array when payload is array of resources', () => {
-            let next: Accessor | undefined;
+            let next!: Accessor;
             let complete = false;
 
             collection.create([item, item]).subscribe({
@@ -443,12 +428,13 @@ describe('Collection', () => {
                 { version: '3.5.7' },
                 { version: '3.5.7' }
             ]);
-            expect(next?.self).toBe('/api/test');
+            expect(next).toBeDefined();
+            expect(next.self).toBe('/api/test');
             expect(complete).toBe(true);
         });
 
         it('posts array when payload is array of primitives', () => {
-            let next: Accessor | undefined;
+            let next!: Accessor;
             let complete = false;
 
             collection.create([0, 'zero', false, null, undefined]).subscribe({
@@ -469,7 +455,8 @@ describe('Collection', () => {
 
             expect(req.request.body)
                 .toEqual([0, 'zero', false, null, undefined]);
-            expect(next?.self).toBe('/api/test');
+            expect(next).toBeDefined();
+            expect(next.self).toBe('/api/test');
             expect(complete).toBe(true);
         });
 
@@ -482,7 +469,7 @@ describe('Collection', () => {
                     ]
                 }
             });
-            let next: Accessor | undefined;
+            let next!: Accessor;
             let complete = false;
 
             collection.create(newCollection).subscribe({
@@ -505,13 +492,14 @@ describe('Collection', () => {
                 { version: '3.5.7' },
                 { version: '3.5.8' }
             ]);
-            expect(next?.self).toBe('/api/test');
+            expect(next).toBeDefined();
+            expect(next.self).toBe('/api/test');
             expect(complete).toBe(true);
         });
 
-        it('emits undefined when no location', () => {
+        it('emits undefined self when no location', () => {
             const item = new TestResource({ version: '3.5.7' });
-            let next: Accessor | undefined;
+            let next!: Accessor;
             let complete = false;
 
             collection.create(item).subscribe({
@@ -528,7 +516,8 @@ describe('Collection', () => {
             });
 
             expect(req.request.body).toEqual({ version: '3.5.7' });
-            expect(next).toBeUndefined();
+            expect(next).toBeDefined();
+            expect(next.self).toBeUndefined();
             expect(complete).toBe(true);
         });
 
@@ -584,6 +573,15 @@ describe('Collection', () => {
     });
 
     describe('#canRead', () => {
+        it('is false when no self link', () => {
+            const noSelf = new Collection(TestResource, {
+                _client: spectator.httpClient,
+                _links: {}
+            });
+
+            expect(noSelf.canRead).toBe(false);
+        });
+
         it('is true when no methods array', () => {
             expect(collection.canRead).toBe(true);
         });
@@ -647,7 +645,7 @@ describe('Collection', () => {
 
     describe('#read()', () => {
         it('emits collection at self link when it exists', () => {
-            let next: Collection<TestResource> | undefined;
+            let next!: Collection<TestResource>;
             let complete = false;
 
             collection.read().subscribe({
@@ -668,7 +666,7 @@ describe('Collection', () => {
             });
 
             expect(next).toBeInstanceOf(Collection);
-            expect(next?.values.map(x => x.version)).toEqual([
+            expect(next.values.map(x => x.version)).toEqual([
                 '2.0.1',
                 '3.0.0'
             ]);
@@ -689,7 +687,8 @@ describe('Collection', () => {
             expect(error.path).toBeUndefined();
             expect(error.status).toBeUndefined();
             expect(error.error).toBeUndefined();
-            expect(error.message).toBe('no valid "self" relation');
+            expect(error.message)
+                .toBe('no "self" relation supporting "GET" method');
         });
 
         it('throws HAL error when self rel does not have href', () => {
@@ -706,7 +705,38 @@ describe('Collection', () => {
             expect(error.path).toBeUndefined();
             expect(error.status).toBeUndefined();
             expect(error.error).toBeUndefined();
-            expect(error.message).toBe('no valid "self" relation');
+            expect(error.message)
+                .toBe('no "self" relation supporting "GET" method');
+        });
+
+        it('throws HAL error when GET is not allowed', () => {
+            const noGet = new Collection(TestResource, {
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/test',
+                        methods: ['POST']
+                    }
+                },
+                _embedded: {
+                    array: []
+                }
+            });
+            let error!: HalError;
+
+            noGet.read().subscribe({
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message)
+                .toBe('no "self" relation supporting "GET" method');
         });
 
         it('throws HAL error when connection fails', () => {
@@ -761,6 +791,15 @@ describe('Collection', () => {
     });
 
     describe('#canUpdate', () => {
+        it('is false when no self link', () => {
+            const noSelf = new Collection(TestResource, {
+                _client: spectator.httpClient,
+                _links: {}
+            });
+
+            expect(noSelf.canUpdate).toBe(false);
+        });
+
         it('is true when no methods array', () => {
             expect(collection.canUpdate).toBe(true);
         });
@@ -824,7 +863,7 @@ describe('Collection', () => {
 
     describe('#update()', () => {
         it('puts payload to self when it exists', () => {
-            let next: Collection<TestResource> | undefined;
+            let next!: Collection<TestResource>;
             let complete = false;
 
             collection.update().subscribe({
@@ -862,7 +901,8 @@ describe('Collection', () => {
             expect(error.path).toBeUndefined();
             expect(error.status).toBeUndefined();
             expect(error.error).toBeUndefined();
-            expect(error.message).toBe('no valid "self" relation');
+            expect(error.message)
+                .toBe('no "self" relation supporting "PUT" method');
         });
 
         it('throws HAL error when self rel does not have href', () => {
@@ -879,7 +919,38 @@ describe('Collection', () => {
             expect(error.path).toBeUndefined();
             expect(error.status).toBeUndefined();
             expect(error.error).toBeUndefined();
-            expect(error.message).toBe('no valid "self" relation');
+            expect(error.message)
+                .toBe('no "self" relation supporting "PUT" method');
+        });
+
+        it('throws HAL error when PUT is not allowed', () => {
+            const noPut = new Collection(TestResource, {
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/test',
+                        methods: ['GET']
+                    }
+                },
+                _embedded: {
+                    array: []
+                }
+            });
+            let error!: HalError;
+
+            noPut.update().subscribe({
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message)
+                .toBe('no "self" relation supporting "PUT" method');
         });
 
         it('throws HAL error when connection fails', () => {
@@ -934,6 +1005,15 @@ describe('Collection', () => {
     });
 
     describe('#canDelete', () => {
+        it('is false when no self link', () => {
+            const noSelf = new Collection(TestResource, {
+                _client: spectator.httpClient,
+                _links: {}
+            });
+
+            expect(noSelf.canDelete).toBe(false);
+        });
+
         it('is true when no methods array', () => {
             expect(collection.canDelete).toBe(true);
         });
@@ -1031,7 +1111,8 @@ describe('Collection', () => {
             expect(error.path).toBeUndefined();
             expect(error.status).toBeUndefined();
             expect(error.error).toBeUndefined();
-            expect(error.message).toBe('no valid "self" relation');
+            expect(error.message)
+                .toBe('no "self" relation supporting "DELETE" method');
         });
 
         it('throws HAL error when self rel does not have href', () => {
@@ -1048,7 +1129,38 @@ describe('Collection', () => {
             expect(error.path).toBeUndefined();
             expect(error.status).toBeUndefined();
             expect(error.error).toBeUndefined();
-            expect(error.message).toBe('no valid "self" relation');
+            expect(error.message)
+                .toBe('no "self" relation supporting "DELETE" method');
+        });
+
+        it('throws HAL error when self rel does not have href', () => {
+            const noDelete = new Collection(TestResource, {
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/test',
+                        methods: ['PUT']
+                    }
+                },
+                _embedded: {
+                    array: []
+                }
+            });
+            let error!: HalError;
+
+            noDelete.delete().subscribe({
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message)
+                .toBe('no "self" relation supporting "DELETE" method');
         });
 
         it('throws HAL error when connection fails', () => {
@@ -1110,14 +1222,14 @@ describe('Collection', () => {
         it('returns resource when embedded rel exists', () => {
             const test = collection.get(TestResource, 'object');
 
-            expect(test).toBeDefined();
+            expect(test).toBeInstanceOf(TestResource);
             expect(test?.version).toBe('1.0.0');
         });
 
         it('returns first resource when embedded rel is array', () => {
             const one = collection.get(TestResource, 'array');
 
-            expect(one).toBeDefined();
+            expect(one).toBeInstanceOf(TestResource);
             expect(one?.version).toBe('2.0.0');
         });
 
@@ -1135,21 +1247,21 @@ describe('Collection', () => {
         it('returns array of resources when embedded rel is array', () => {
             const array = collection.getArray(TestResource, 'array');
 
-            expect(array).toBeDefined();
+            expect(array).toBeInstanceOf(Array);
             expect(array?.map(x => x.version)).toEqual(['2.0.0', '3.0.0']);
         });
 
         it('returns empty when embedded rel is empty array', () => {
             const array = collection.getArray(TestResource, 'empty');
 
-            expect(array).toBeDefined();
+            expect(array).toBeInstanceOf(Array);
             expect(array?.map(() => 1)).toEqual([]);
         });
 
         it('wraps value in array when rel is not array', () => {
             const array = collection.getArray(TestResource, 'object');
 
-            expect(array).toBeDefined();
+            expect(array).toBeInstanceOf(Array);
             expect(array?.map(x => x.version)).toEqual(['1.0.0']);
         });
     });

@@ -44,38 +44,37 @@ export class Collection<T extends Resource> extends Resource {
     }
 
     /**
-     * Follow `next` link if it exists and can be read.
+     * Follow the `next` link. If the link does not exist, the accessor
+     * will have the `self` link set to `undefined`.
      *
-     * @returns the accessor for the link or `undefined`
+     * @returns the accessor for the link
      */
-    next(): Accessor | undefined {
-        const accessor = this.follow(next);
-
-        return !!accessor && accessor.canRead ? accessor : undefined;
+    next(): Accessor {
+        return this.follow(next);
     }
 
     /**
-     * Follow `prev` link if it exists and can be read.
+     * Follow the `prev` link. If the link does not exist, the accessor
+     * will have the `self` link set to `undefined`.
      *
-     * @returns the accessor for the link or `undefined`
+     * @returns the accessor for the link
      */
-    previous(): Accessor | undefined {
-        const accessor = this.follow(prev);
-
-        return !!accessor && accessor.canRead ? accessor : undefined;
+    prev(): Accessor {
+        return this.follow(prev);
     }
 
     /**
      * Refresh the resource collection. In other words, read
      * the resource collection identified by `self` link.
      *
-     * @returns an observable of the refreshed resource collection instance
+     * @returns an observable of the refreshed resource collection
+     * instance
      */
     override read(): Observable<this> {
-        return this.withSelf(self => this._client.get(self).pipe(
+        return this.withUriFor('GET', self => this._client.get(self).pipe(
             map(obj => new Collection(this.type, {
                 ...obj,
-                 _client: this._client
+                _client: this._client
             }) as this),
             catchError(this.handleError)
         ));

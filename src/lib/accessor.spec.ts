@@ -18,6 +18,8 @@ describe('Accessor', () => {
     const createService = createHttpFactory({ service: TestService });
     let spectator: SpectatorHttp<TestService>;
     let accessor: Accessor;
+    let noSelf: Accessor;
+    let noHref: Accessor;
 
     beforeEach(() => {
         spectator = createService();
@@ -27,6 +29,16 @@ describe('Accessor', () => {
                 self: { href: '/api/root' }
             }
         });
+        noSelf = new Accessor({
+            _client: spectator.httpClient,
+            _links: {}
+        });
+        noHref = new Accessor({
+            _client: spectator.httpClient,
+            _links: {
+                self: {}
+            }
+        });
     });
 
     it('exposes self link', () => {
@@ -34,6 +46,15 @@ describe('Accessor', () => {
     });
 
     describe('#canCreate', () => {
+        it('is false when no self link', () => {
+            const noSelf = new Accessor({
+                _client: spectator.httpClient,
+                _links: {}
+            });
+
+            expect(noSelf.canCreate).toBe(false);
+        });
+
         it('is true when no methods array', () => {
             expect(accessor.canCreate).toBe(true);
         });
@@ -99,7 +120,7 @@ describe('Accessor', () => {
         const item = new TestResource({ version: '3.5.7' });
 
         it('posts payload to self and emits Accessor when location is given', () => {
-            let next: Accessor | undefined;
+            let next!: Accessor;
             let complete = false;
 
             accessor.create(item).subscribe({
@@ -119,12 +140,13 @@ describe('Accessor', () => {
             });
 
             expect(req.request.body).toEqual({ version: '3.5.7' });
-            expect(next?.self).toBe('/api/root/42');
+            expect(next).toBeDefined();
+            expect(next.self).toBe('/api/root/42');
             expect(complete).toBe(true);
         });
 
         it('posts array when payload is array of resources', () => {
-            let next: Accessor | undefined;
+            let next!: Accessor;
             let complete = false;
 
             accessor.create([item, item]).subscribe({
@@ -147,12 +169,13 @@ describe('Accessor', () => {
                 { version: '3.5.7' },
                 { version: '3.5.7' }
             ]);
-            expect(next?.self).toBe('/api/root');
+            expect(next).toBeDefined();
+            expect(next.self).toBe('/api/root');
             expect(complete).toBe(true);
         });
 
         it('posts array when payload is array of primitives', () => {
-            let next: Accessor | undefined;
+            let next!: Accessor;
             let complete = false;
 
             accessor.create([0, 'zero', false, null, undefined]).subscribe({
@@ -173,7 +196,8 @@ describe('Accessor', () => {
 
             expect(req.request.body)
                 .toEqual([0, 'zero', false, null, undefined]);
-            expect(next?.self).toBe('/api/root');
+            expect(next).toBeDefined();
+            expect(next.self).toBe('/api/root');
             expect(complete).toBe(true);
         });
 
@@ -186,7 +210,7 @@ describe('Accessor', () => {
                     ]
                 }
             });
-            let next: Accessor | undefined;
+            let next!: Accessor;
             let complete = false;
 
             accessor.create(collection).subscribe({
@@ -209,13 +233,14 @@ describe('Accessor', () => {
                 { version: '3.5.7' },
                 { version: '3.5.8' }
             ]);
-            expect(next?.self).toBe('/api/root');
+            expect(next).toBeDefined();
+            expect(next.self).toBe('/api/root');
             expect(complete).toBe(true);
         });
 
-        it('posts payload to self and emits undefined when no location', () => {
+        it('posts payload to self and emits undefined self when no location', () => {
             const item = new TestResource({ version: '3.5.7' });
-            let next: Accessor | undefined;
+            let next!: Accessor;
             let complete = false;
 
             accessor.create(item).subscribe({
@@ -232,8 +257,72 @@ describe('Accessor', () => {
             });
 
             expect(req.request.body).toEqual({ version: '3.5.7' });
-            expect(next).toBeUndefined();
+            expect(next).toBeDefined();
+            expect(next.self).toBeUndefined();
             expect(complete).toBe(true);
+        });
+
+        it('throws HAL error when self rel does not exist', () => {
+            let error!: HalError;
+
+            noSelf.create(item).subscribe({
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message)
+                .toBe('no "self" relation supporting "POST" method');
+        });
+
+        it('throws HAL error when self rel does have href', () => {
+            let error!: HalError;
+
+            noHref.create(item).subscribe({
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message)
+                .toBe('no "self" relation supporting "POST" method');
+        });
+
+        it('throws HAL error when POST is not allowed', () => {
+            const noPost = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: ['DELETE']
+                    }
+                }
+            });
+            let error!: HalError;
+
+            noPost.create(item).subscribe({
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message)
+                .toBe('no "self" relation supporting "POST" method');
         });
 
         it('throws HAL error when connection fails', () => {
@@ -288,6 +377,15 @@ describe('Accessor', () => {
     });
 
     describe('#canRead', () => {
+        it('is false when no self link', () => {
+            const noSelf = new Accessor({
+                _client: spectator.httpClient,
+                _links: {}
+            });
+
+            expect(noSelf.canRead).toBe(false);
+        });
+
         it('is true when no methods array', () => {
             expect(accessor.canRead).toBe(true);
         });
@@ -367,6 +465,69 @@ describe('Accessor', () => {
             expect(next).toBeInstanceOf(TestResource);
             expect(next.version).toBe('2.7.1');
             expect(complete).toBe(true);
+        });
+
+        it('throws HAL error when self rel does not exist', () => {
+            let error!: HalError;
+
+            noSelf.read(TestResource).subscribe({
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message)
+                .toBe('no "self" relation supporting "GET" method');
+        });
+
+        it('throws HAL error when self rel does not have href', () => {
+            let error!: HalError;
+
+            noHref.read(TestResource).subscribe({
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message)
+                .toBe('no "self" relation supporting "GET" method');
+        });
+
+        it('throws HAL error when GET is not allowed', () => {
+            const noGet = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: ['POST']
+                    }
+                }
+            });
+            let error!: HalError;
+
+            noGet.read(TestResource).subscribe({
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message)
+                .toBe('no "self" relation supporting "GET" method');
         });
 
         it('throws HAL error when connection fails', () => {
@@ -454,6 +615,69 @@ describe('Accessor', () => {
             expect(complete).toBe(true);
         });
 
+        it('throws HAL error when self rel does not exist', () => {
+            let error!: HalError;
+
+            noSelf.readCollection(TestResource).subscribe({
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message)
+                .toBe('no "self" relation supporting "GET" method');
+        });
+
+        it('throws HAL error when self rel does not have href', () => {
+            let error!: HalError;
+
+            noHref.readCollection(TestResource).subscribe({
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message)
+                .toBe('no "self" relation supporting "GET" method');
+        });
+
+        it('throws HAL error when GET is not allowed', () => {
+            const noGet = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: ['POST']
+                    }
+                }
+            });
+            let error!: HalError;
+
+            noGet.readCollection(TestResource).subscribe({
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message)
+                .toBe('no "self" relation supporting "GET" method');
+        });
+
         it('throws HAL error when connection fails', () => {
             let error!: HalError;
 
@@ -506,6 +730,15 @@ describe('Accessor', () => {
     });
 
     describe('#canDelete', () => {
+        it('is false when no self link', () => {
+            const noSelf = new Accessor({
+                _client: spectator.httpClient,
+                _links: {}
+            });
+
+            expect(noSelf.canDelete).toBe(false);
+        });
+
         it('is true when no methods array', () => {
             expect(accessor.canDelete).toBe(true);
         });
@@ -587,6 +820,69 @@ describe('Accessor', () => {
 
             expect(next).toBe(true);
             expect(complete).toBe(true);
+        });
+
+        it('throws HAL error when self rel does not exist', () => {
+            let error!: HalError;
+
+            noSelf.delete().subscribe({
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message)
+                .toBe('no "self" relation supporting "DELETE" method');
+        });
+
+        it('throws HAL error when self rel does not have href', () => {
+            let error!: HalError;
+
+            noHref.delete().subscribe({
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message)
+                .toBe('no "self" relation supporting "DELETE" method');
+        });
+
+        it('throws HAL error when DELETE is not allowed', () => {
+            const noDelete = new Accessor({
+                _client: spectator.httpClient,
+                _links: {
+                    self: {
+                        href: '/api/v1/items',
+                        methods: ['PUT']
+                    }
+                }
+            });
+            let error!: HalError;
+
+            noDelete.delete().subscribe({
+                next: () => expect.fail('no next is expected'),
+                complete: () => expect.fail('no complete is expected'),
+                error: err => error = err
+            });
+
+            expect(error).toBeInstanceOf(HalError);
+            expect(error.name).toBe('HalError');
+            expect(error.path).toBeUndefined();
+            expect(error.status).toBeUndefined();
+            expect(error.error).toBeUndefined();
+            expect(error.message)
+                .toBe('no "self" relation supporting "DELETE" method');
         });
 
         it('throws HAL error when connection fails', () => {
