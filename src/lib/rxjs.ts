@@ -1,7 +1,8 @@
 import { Type } from '@angular/core';
-import { filter, map, Observable, of, OperatorFunction, pipe, switchMap,
+import { filter, map, Observable, OperatorFunction, pipe, switchMap,
     takeUntil } from 'rxjs';
-import { Accessor, Collection, isDefined, Params, Resource } from './internal';
+import { Accessor, Collection, isDefined, Params,
+    Resource } from './internal';
 
 /**
  * Returns an RxJS operator that makes the source {@link Observable}
