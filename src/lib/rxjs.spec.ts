@@ -20,7 +20,7 @@ describe('completeWith()', () => {
 });
 
 describe('defined()', () => {
-    it('filters out null and undefiled elements', () => {
+    it('filters out null and undefined elements', () => {
         const source = cold('bisuona|', {
             b: false,
             i: 0,
