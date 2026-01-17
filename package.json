@@ -30,24 +30,24 @@
   "peerDependencies": {
     "@angular/common": ">=18",
     "@angular/core": ">=18",
-    "rxjs": "^7.8.2",
+    "rxjs": "^7.0.0",
     "uri-template": "^2.0.0"
   },
   "dependencies": {
     "tslib": "^2.3.0"
   },
   "devDependencies": {
-    "@angular/build": "^21.0.4",
-    "@angular/cli": "^21.0.4",
-    "@angular/compiler-cli": "^21.0.6",
-    "@angular/platform-browser-dynamic": "^21.0.6",
-    "@granito/vitest-marbles": "^1.1.0",
+    "@angular/build": "^21.1.0",
+    "@angular/cli": "^21.1.0",
+    "@angular/compiler-cli": "^21.1.0",
+    "@angular/platform-browser-dynamic": "^21.1.0",
+    "@granito/vitest-marbles": "^1.1.1",
     "@ngneat/spectator": "^22.1.0",
-    "@vitest/coverage-v8": "^4.0.16",
+    "@vitest/coverage-v8": "^4.0.17",
     "jsdom": "^27.4.0",
-    "ng-packagr": "^21.0.1",
-    "typedoc": "^0.28.15",
+    "ng-packagr": "^21.1.0",
+    "typedoc": "^0.28.16",
     "typescript": "~5.9.3",
-    "vitest": "^4.0.16"
+    "vitest": "^4.0.17"
   }
 }
